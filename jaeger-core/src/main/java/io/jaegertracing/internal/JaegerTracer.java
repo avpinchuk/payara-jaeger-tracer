@@ -43,7 +43,6 @@ import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.propagation.Format;
-import io.opentracing.tag.Tag;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.ThreadLocalScopeManager;
 import java.io.Closeable;
@@ -203,7 +202,8 @@ public class JaegerTracer implements Tracer, Closeable {
   public Span activeSpan() {
     // the active scope might have been added there through an API extension, similar to what the OT java-metrics
     // library does -- therefore, we can't guarantee that we are returning a JaegerSpan here.
-    return this.scopeManager.activeSpan();
+    Scope scope = scopeManager.active();
+    return scope == null ? null : scope.span();
   }
 
   @Override
@@ -322,14 +322,6 @@ public class JaegerTracer implements Tracer, Closeable {
     @Override
     public JaegerTracer.SpanBuilder withTag(String key, Number value) {
       tags.put(key, value);
-      return this;
-    }
-
-    @Override
-    public <T> Tracer.SpanBuilder withTag(Tag<T> tag, T value) {
-      if (tag != null && tag.getKey() != null) {
-        this.tags.put(tag.getKey(), value);
-      }
       return this;
     }
 
@@ -460,8 +452,8 @@ public class JaegerTracer implements Tracer, Closeable {
       JaegerSpanContext context;
 
       // Check if active span should be established as CHILD_OF relationship
-      if (references.isEmpty() && !ignoreActiveSpan && null != scopeManager.activeSpan()) {
-        asChildOf(scopeManager.activeSpan());
+      if (references.isEmpty() && !ignoreActiveSpan && null != scopeManager.active()) {
+        asChildOf(scopeManager.active().span());
       }
 
       if (references.isEmpty() || !references.get(0).getSpanContext().hasTrace()) {
@@ -503,24 +495,7 @@ public class JaegerTracer implements Tracer, Closeable {
     @Deprecated
     // @Override keep compatibility with 0.32.0
     public Scope startActive(final boolean finishSpanOnClose) {
-      if (!finishSpanOnClose) {
-        return scopeManager.activate(start());
-      }
-      return new Scope() {
-        Span span = start();
-        Scope wrapped = scopeManager.activate(span);
-
-        @Override
-        public void close() {
-          wrapped.close();
-          span.finish();
-        }
-
-        // @Override keep compatibility with 0.32.0
-        public Span span() {
-          return span;
-        }
-      };
+      return scopeManager.activate(start(), finishSpanOnClose);
     }
 
     @Override
@@ -760,8 +735,4 @@ public class JaegerTracer implements Tracer, Closeable {
     return this.useTraceId128Bit;
   }
 
-  @Override
-  public Scope activateSpan(Span span) {
-    return scopeManager().activate(span);
-  }
 }

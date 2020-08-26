@@ -35,7 +35,6 @@ public class JaegerSpanContext implements SpanContext {
   private final String debugId;
   private final JaegerObjectFactory objectFactory;
   private final String traceIdAsString;
-  private final String spanIdAsString;
   private String traceState;
 
   public JaegerSpanContext(long traceIdHigh, long traceIdLow, long spanId, long parentId, byte flags) {
@@ -71,7 +70,6 @@ public class JaegerSpanContext implements SpanContext {
     this.debugId = debugId;
     this.objectFactory = objectFactory;
     this.traceIdAsString = convertTraceId();
-    this.spanIdAsString = Long.toHexString(spanId);
   }
 
   @Override
@@ -198,13 +196,4 @@ public class JaegerSpanContext implements SpanContext {
     return debugId;
   }
 
-  @Override
-  public String toTraceId() {
-    return traceIdAsString;
-  }
-
-  @Override
-  public String toSpanId() {
-    return spanIdAsString;
-  }
 }

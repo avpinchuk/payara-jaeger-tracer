@@ -17,7 +17,6 @@ package io.jaegertracing.internal.propagation;
 import io.jaegertracing.internal.JaegerObjectFactory;
 import io.jaegertracing.internal.JaegerSpanContext;
 import io.jaegertracing.spi.Codec;
-import io.opentracing.propagation.Binary;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
@@ -42,7 +41,7 @@ import java.util.Map;
  * IDs are 64 bits integers (long) serialized as:
  * | TraceID high | TraceID low | SpanID | Parent ID |
  */
-public class BinaryCodec implements Codec<Binary> {
+public class BinaryCodec implements Codec<ByteBuffer> {
 
   /**
    * Explicitly define the charset we will use.
@@ -66,57 +65,22 @@ public class BinaryCodec implements Codec<Binary> {
   }
 
   /**
-   * Write a long into a stream in network order
-   *
-   * @param stream Stream to write the integer into
-   * @param value  long to write
-   * @param buf buffer to use to write to the stream.
-   */
-  private static void writeLong(ByteArrayOutputStream stream, long value) {
-    stream.write((byte) (value >> 56));
-    stream.write((byte) (value >> 48));
-    stream.write((byte) (value >> 40));
-    stream.write((byte) (value >> 32));
-    stream.write((byte) (value >> 24));
-    stream.write((byte) (value >> 16));
-    stream.write((byte) (value >> 8));
-    stream.write((byte) (value));
-  }
-
-  /**
-   * Write an integer into a stream in network order
-   *
-   * @param stream Stream to write the integer into
-   * @param value  integer to write
-   */
-  private static void writeInt(ByteArrayOutputStream stream, int value) {
-    stream.write((byte) (value >> 24));
-    stream.write((byte) (value >> 16));
-    stream.write((byte) (value >> 8));
-    stream.write((byte) (value));
-  }
-
-  /**
    * Writes a String Key/Value pair into a ByteArrayOutputStream
    *
-   * @param stream Stream to write the integer into
+   * @param buffer buffer to write the integer into
    * @param key    key of the KV pair
    * @param value  value of the KV pair
    */
-  private void writeKvPair(ByteArrayOutputStream stream, String key, String value) {
-    byte[] buf;
+  private void writeKvPair(ByteBuffer buffer, String key, String value) {
+    byte[] bytes;
 
-    int keyLen;
-    buf = key.getBytes(DEFAULT_CHARSET);
-    keyLen = buf.length;
-    writeInt(stream, keyLen);
-    stream.write(buf, 0, keyLen);
+    bytes = key.getBytes(DEFAULT_CHARSET);
+    buffer.putInt(bytes.length);
+    buffer.put(bytes);
 
-    int valLen;
-    buf = value.getBytes(DEFAULT_CHARSET);
-    valLen = value.length();
-    writeInt(stream, valLen);
-    stream.write(buf, 0, valLen);
+    bytes = value.getBytes(DEFAULT_CHARSET);
+    buffer.putInt(bytes.length);
+    buffer.put(bytes);
   }
 
   /**
@@ -131,65 +95,51 @@ public class BinaryCodec implements Codec<Binary> {
   }
 
   @Override
-  public void inject(JaegerSpanContext spanContext, Binary carrier) {
-
-    // Because we need to know the size of a ByteBuffer a priori, we'll
-    // use a stream to serialize and then copy the stream into the
-    // ByteBuffer of the carrier.  The double allocation isn't ideal, but
-    // these should be small and the GC will return this memory very fast.
-    ByteArrayOutputStream stream = new ByteArrayOutputStream(64);
+  public void inject(JaegerSpanContext spanContext, ByteBuffer carrier) {
+    // Java defaults to big endian (network order), but enforce it just
+    // in case the carrier set the wrong byte order before passing it in.
+    if (carrier.order() != ByteOrder.BIG_ENDIAN) {
+      throw new IllegalStateException("Carrier byte order must be big endian.");
+    }
 
     // Write the IDs
-    writeLong(stream, spanContext.getTraceIdHigh());
-    writeLong(stream, spanContext.getTraceIdLow());
-    writeLong(stream, spanContext.getSpanId());
-    writeLong(stream, spanContext.getParentId());
+    carrier.putLong(spanContext.getTraceIdHigh());
+    carrier.putLong(spanContext.getTraceIdLow());
+    carrier.putLong(spanContext.getSpanId());
+    carrier.putLong(spanContext.getParentId());
 
     // Write the flags (byte)
-    stream.write(spanContext.getFlags());
+    carrier.put(spanContext.getFlags());
 
     // write the baggage count.
-    writeInt(stream, spanContext.baggageCount());
+    carrier.putInt(spanContext.baggageCount());
 
     // write the kv/pars into the stream
     for (Map.Entry<String, String> entry : spanContext.baggageItems()) {
-      writeKvPair(stream, entry.getKey(), entry.getValue());
+      writeKvPair(carrier, entry.getKey(), entry.getValue());
     }
-
-    // Now we have a stream and a size, and we'll copy it into the byte
-    // buffer.
-    int size = stream.size();
-    ByteBuffer buf = carrier.injectionBuffer(size);
-
-    // Java defaults to big endian (network order), but enforce it just
-    // in case the carrier set the wrong byte order before passing it in.
-    if (buf.order() != ByteOrder.BIG_ENDIAN) {
-      throw new IllegalStateException("Carrier byte order must be big endian.");
-    }
-    buf.put(stream.toByteArray(), 0, size);
   }
 
   @Override
-  public JaegerSpanContext extract(Binary carrier) {
-    Map<String, String> baggage = null;
-
-    ByteBuffer buf = carrier.extractionBuffer();
-
-    // Do not require the carrier implemention to rewind.
-    buf.rewind();
-
+  public JaegerSpanContext extract(ByteBuffer carrier) {
     // Java defaults to big endian (network order), but enforce it just
     // in case the carrier is using the wrong byte order.
-    if (buf.order() != ByteOrder.BIG_ENDIAN) {
+    if (carrier.order() != ByteOrder.BIG_ENDIAN) {
       throw new IllegalStateException("Carrier byte order must be big endian.");
     }
 
-    long traceIdHigh = buf.getLong();
-    long traceIdLow = buf.getLong();
-    long spanId = buf.getLong();
-    long parentId = buf.getLong();
-    byte flags = buf.get();
-    int count = buf.getInt();
+    Map<String, String> baggage = null;
+
+    // Do not require the carrier implemention to rewind.
+    carrier.rewind();
+
+
+    long traceIdHigh = carrier.getLong();
+    long traceIdLow = carrier.getLong();
+    long spanId = carrier.getLong();
+    long parentId = carrier.getLong();
+    byte flags = carrier.get();
+    int count = carrier.getInt();
 
     // This is optimized to reduce allocations.  A decent
     // buffer is allocated to read strings, and reused for
@@ -200,14 +150,14 @@ public class BinaryCodec implements Codec<Binary> {
       byte[] tmp = new byte[32];
 
       for (int i = 0; i < count; i++) {
-        int len = buf.getInt();
+        int len = carrier.getInt();
         tmp = checkBuf(len, tmp);
-        buf.get(tmp, 0, len);
+        carrier.get(tmp, 0, len);
         final String key = new String(tmp, 0, len, DEFAULT_CHARSET);
 
-        len = buf.getInt();
+        len = carrier.getInt();
         tmp = checkBuf(len, tmp);
-        buf.get(tmp, 0, len);
+        carrier.get(tmp, 0, len);
         final String value = new String(tmp, 0, len, DEFAULT_CHARSET);
 
         baggage.put(key, value);

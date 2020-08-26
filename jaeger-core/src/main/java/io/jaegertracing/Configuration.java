@@ -38,9 +38,10 @@ import io.jaegertracing.spi.Reporter;
 import io.jaegertracing.spi.Sampler;
 import io.jaegertracing.spi.Sender;
 import io.jaegertracing.spi.SenderFactory;
-import io.opentracing.propagation.Binary;
 import io.opentracing.propagation.Format;
 import io.opentracing.propagation.TextMap;
+
+import java.nio.ByteBuffer;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Arrays;
@@ -432,11 +433,11 @@ public class Configuration {
    */
   public static class CodecConfiguration {
     private final Map<Format<?>, List<Codec<TextMap>>> codecs;
-    private final Map<Format<?>, List<Codec<Binary>>> binaryCodecs;
+    private final Map<Format<?>, List<Codec<ByteBuffer>>> binaryCodecs;
 
     public CodecConfiguration() {
       codecs = new HashMap<Format<?>, List<Codec<TextMap>>>();
-      binaryCodecs = new HashMap<Format<?>, List<Codec<Binary>>>();
+      binaryCodecs = new HashMap<Format<?>, List<Codec<ByteBuffer>>>();
     }
 
     public static CodecConfiguration fromEnv() {
@@ -488,7 +489,7 @@ public class Configuration {
       return this;
     }
 
-    public CodecConfiguration withBinaryCodec(Format<?> format, Codec<Binary> codec) {
+    public CodecConfiguration withBinaryCodec(Format<?> format, Codec<ByteBuffer> codec) {
       addBinaryCodec(binaryCodecs, format, codec);
       return this;
     }
@@ -497,7 +498,7 @@ public class Configuration {
       return Collections.unmodifiableMap(codecs);
     }
 
-    public Map<Format<?>, List<Codec<Binary>>> getBinaryCodecs() {
+    public Map<Format<?>, List<Codec<ByteBuffer>>> getBinaryCodecs() {
       return Collections.unmodifiableMap(binaryCodecs);
     }
 
@@ -510,12 +511,12 @@ public class Configuration {
       codecList.add(codec);
     }
 
-    private static void addBinaryCodec(Map<Format<?>, List<Codec<Binary>>> codecs,
-        Format<?> format, Codec<Binary> codec) {
+    private static void addBinaryCodec(Map<Format<?>, List<Codec<ByteBuffer>>> codecs,
+        Format<?> format, Codec<ByteBuffer> codec) {
 
-      List<Codec<Binary>> codecList = codecs.get(format);
+      List<Codec<ByteBuffer>> codecList = codecs.get(format);
       if (codecList == null) {
-        codecList = new LinkedList<Codec<Binary>>();
+        codecList = new LinkedList<Codec<ByteBuffer>>();
         codecs.put(format, codecList);
       }
       codecList.add(codec);
@@ -539,11 +540,11 @@ public class Configuration {
       }
     }
 
-    protected void registerBinaryCodec(JaegerTracer.Builder builder, Format<Binary> format) {
+    protected void registerBinaryCodec(JaegerTracer.Builder builder, Format<ByteBuffer> format) {
       if (codecs.containsKey(format)) {
-        List<Codec<Binary>> codecsForFormat = binaryCodecs.get(format);
-        Codec<Binary> codec = codecsForFormat.size() == 1
-            ? codecsForFormat.get(0) : new CompositeCodec<Binary>(codecsForFormat);
+        List<Codec<ByteBuffer>> codecsForFormat = binaryCodecs.get(format);
+        Codec<ByteBuffer> codec = codecsForFormat.size() == 1
+            ? codecsForFormat.get(0) : new CompositeCodec<ByteBuffer>(codecsForFormat);
         builder.registerInjector(format, codec);
         builder.registerExtractor(format, codec);
       }

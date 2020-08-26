@@ -34,13 +34,13 @@ public class MDCScopeManager implements ScopeManager {
   }
 
   @Override
-  public Scope activate(Span span) {
-    return new MDCScope(wrappedScopeManager.activate(span), span);
+  public Scope activate(Span span, boolean finishSpanOnClose) {
+    return new MDCScope(wrappedScopeManager.activate(span, finishSpanOnClose), span);
   }
 
   @Override
-  public Span activeSpan() {
-    return wrappedScopeManager.activeSpan();
+  public Scope active() {
+    return wrappedScopeManager.active();
   }
 
   /**
@@ -104,8 +104,8 @@ public class MDCScopeManager implements ScopeManager {
     }
 
     protected void putContext(JaegerSpanContext spanContext) {
-      replace(mdcTraceIdKey, spanContext.toTraceId());
-      replace(mdcSpanIdKey, spanContext.toSpanId());
+      replace(mdcTraceIdKey, spanContext.getTraceId());
+      replace(mdcSpanIdKey, Long.toHexString(spanContext.getSpanId()));
       replace(mdcSampledKey, String.valueOf(spanContext.isSampled()));
     }
 
@@ -124,5 +124,12 @@ public class MDCScopeManager implements ScopeManager {
       replace(mdcSpanIdKey, previousSpanId);
       replace(mdcSampledKey, previousSampled);
     }
+
+    @Override
+    public Span span() {
+      return wrappedScope.span();
+    }
+
   }
+
 }
