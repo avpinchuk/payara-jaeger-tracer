@@ -16,9 +16,9 @@ package io.jaegertracing.internal.exceptions;
 
 public class EmptyIpException extends RuntimeException {
 
-  private static final long serialVersionUID = 2084472238515931215L;
+    private static final long serialVersionUID = 2084472238515931215L;
 
-  public EmptyIpException() {
-    super("Empty string given for ip");
-  }
+    public EmptyIpException() {
+        super("Empty string given for ip");
+    }
 }

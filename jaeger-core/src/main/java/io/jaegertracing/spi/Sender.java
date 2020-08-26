@@ -18,9 +18,9 @@ import io.jaegertracing.internal.JaegerSpan;
 import io.jaegertracing.internal.exceptions.SenderException;
 
 public interface Sender {
-  int append(JaegerSpan span) throws SenderException;
+    int append(JaegerSpan span) throws SenderException;
 
-  int flush() throws SenderException;
+    int flush() throws SenderException;
 
-  int close() throws SenderException;
+    int close() throws SenderException;
 }

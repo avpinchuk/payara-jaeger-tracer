@@ -18,5 +18,5 @@ import lombok.Value;
 
 @Value
 public class RateLimitingSamplingStrategy {
-  double maxTracesPerSecond;
+    double maxTracesPerSecond;
 }

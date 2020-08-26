@@ -16,9 +16,9 @@ package io.jaegertracing.internal.exceptions;
 
 public class NotFourOctetsException extends RuntimeException {
 
-  private static final long serialVersionUID = 5270319844335906266L;
+    private static final long serialVersionUID = 5270319844335906266L;
 
-  public NotFourOctetsException() {
-    super("Wrong number of octets");
-  }
+    public NotFourOctetsException() {
+        super("Wrong number of octets");
+    }
 }

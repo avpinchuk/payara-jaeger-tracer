@@ -19,13 +19,13 @@ import lombok.Getter;
 
 @Getter
 public final class LogData {
-  private final long time; // time in microseconds
-  private final String message;
-  private final Map<String, ?> fields;
+    private final long time; // time in microseconds
+    private final String message;
+    private final Map<String, ?> fields;
 
-  LogData(long time, String message, Map<String, ?> fields) {
-    this.time = time;
-    this.message = message;
-    this.fields = fields;
-  }
+    LogData(long time, String message, Map<String, ?> fields) {
+        this.time = time;
+        this.message = message;
+        this.fields = fields;
+    }
 }

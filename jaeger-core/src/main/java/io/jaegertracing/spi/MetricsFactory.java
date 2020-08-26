@@ -25,36 +25,36 @@ import java.util.Map;
  *
  */
 public interface MetricsFactory {
-  /**
-   * Creates a counter with the given gauge name and set of tags. The actual metric name is a combination of those two
-   * values. The counter starts at 0.
-   *
-   * @see Metrics#addTagsToMetricName(String, Map)
-   * @param name the counter name
-   * @param tags the tags to add to the counter
-   * @return a {@link Counter} with a metric name following the counter name and tags
-   */
-  Counter createCounter(String name, Map<String, String> tags);
+    /**
+     * Creates a counter with the given gauge name and set of tags. The actual metric name is a combination of those two
+     * values. The counter starts at 0.
+     *
+     * @see Metrics#addTagsToMetricName(String, Map)
+     * @param name the counter name
+     * @param tags the tags to add to the counter
+     * @return a {@link Counter} with a metric name following the counter name and tags
+     */
+    Counter createCounter(String name, Map<String, String> tags);
 
-  /**
-   * Creates a timer with the given timer name and set of tags. The actual metric name is a combination of those two
-   * values. The timer starts at 0.
-   *
-   * @see Metrics#addTagsToMetricName(String, Map)
-   * @param name the timer name
-   * @param tags the tags to add to the timer
-   * @return a {@link Timer} with a metric name following the counter name and tags
-   */
-  Timer createTimer(String name, Map<String, String> tags);
+    /**
+     * Creates a timer with the given timer name and set of tags. The actual metric name is a combination of those two
+     * values. The timer starts at 0.
+     *
+     * @see Metrics#addTagsToMetricName(String, Map)
+     * @param name the timer name
+     * @param tags the tags to add to the timer
+     * @return a {@link Timer} with a metric name following the counter name and tags
+     */
+    Timer createTimer(String name, Map<String, String> tags);
 
-  /**
-   * Creates a gauge with the given gauge name and set of tags. The actual metric name is a combination of those two
-   * values. The timer starts at 0.
-   *
-   * @see Metrics#addTagsToMetricName(String, Map)
-   * @param name the gauge name
-   * @param tags the tags to add to the gauge
-   * @return a {@link Gauge} with a metric name following the gauge name and tags
-   */
-  Gauge createGauge(String name, Map<String, String> tags);
+    /**
+     * Creates a gauge with the given gauge name and set of tags. The actual metric name is a combination of those two
+     * values. The timer starts at 0.
+     *
+     * @see Metrics#addTagsToMetricName(String, Map)
+     * @param name the gauge name
+     * @param tags the tags to add to the gauge
+     * @return a {@link Gauge} with a metric name following the gauge name and tags
+     */
+    Gauge createGauge(String name, Map<String, String> tags);
 }

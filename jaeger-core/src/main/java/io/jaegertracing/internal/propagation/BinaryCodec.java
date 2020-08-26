@@ -43,178 +43,178 @@ import java.util.Map;
  */
 public class BinaryCodec implements Codec<ByteBuffer> {
 
-  /**
-   * Explicitly define the charset we will use.
-   */
-  private static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
-
-  /**
-   * Object factory used to construct JaegerSpanContext subclass instances.
-   */
-  private final JaegerObjectFactory objectFactory;
-
-  /**
-   * Constructor for a Binary Codec.
-   */
-  public BinaryCodec() {
-    this(builder());
-  }
-
-  private BinaryCodec(Builder builder) {
-    this.objectFactory = builder.objectFactory;
-  }
-
-  /**
-   * Writes a String Key/Value pair into a ByteArrayOutputStream
-   *
-   * @param buffer buffer to write the integer into
-   * @param key    key of the KV pair
-   * @param value  value of the KV pair
-   */
-  private void writeKvPair(ByteBuffer buffer, String key, String value) {
-    byte[] bytes;
-
-    bytes = key.getBytes(DEFAULT_CHARSET);
-    buffer.putInt(bytes.length);
-    buffer.put(bytes);
-
-    bytes = value.getBytes(DEFAULT_CHARSET);
-    buffer.putInt(bytes.length);
-    buffer.put(bytes);
-  }
-
-  /**
-   * Convenience method to check a buffer for size and reallocate if necessary.
-   *
-   * @param len   the length required
-   * @param bytes the buffer of bytes to be used
-   * @return a byte array of the correct size.
-   */
-  private static byte[] checkBuf(int len, byte[] bytes) {
-    return len <= bytes.length ? bytes : new byte[len];
-  }
-
-  @Override
-  public void inject(JaegerSpanContext spanContext, ByteBuffer carrier) {
-    // Java defaults to big endian (network order), but enforce it just
-    // in case the carrier set the wrong byte order before passing it in.
-    if (carrier.order() != ByteOrder.BIG_ENDIAN) {
-      throw new IllegalStateException("Carrier byte order must be big endian.");
-    }
-
-    // Write the IDs
-    carrier.putLong(spanContext.getTraceIdHigh());
-    carrier.putLong(spanContext.getTraceIdLow());
-    carrier.putLong(spanContext.getSpanId());
-    carrier.putLong(spanContext.getParentId());
-
-    // Write the flags (byte)
-    carrier.put(spanContext.getFlags());
-
-    // write the baggage count.
-    carrier.putInt(spanContext.baggageCount());
-
-    // write the kv/pars into the stream
-    for (Map.Entry<String, String> entry : spanContext.baggageItems()) {
-      writeKvPair(carrier, entry.getKey(), entry.getValue());
-    }
-  }
-
-  @Override
-  public JaegerSpanContext extract(ByteBuffer carrier) {
-    // Java defaults to big endian (network order), but enforce it just
-    // in case the carrier is using the wrong byte order.
-    if (carrier.order() != ByteOrder.BIG_ENDIAN) {
-      throw new IllegalStateException("Carrier byte order must be big endian.");
-    }
-
-    Map<String, String> baggage = null;
-
-    // Do not require the carrier implemention to rewind.
-    carrier.rewind();
-
-
-    long traceIdHigh = carrier.getLong();
-    long traceIdLow = carrier.getLong();
-    long spanId = carrier.getLong();
-    long parentId = carrier.getLong();
-    byte flags = carrier.get();
-    int count = carrier.getInt();
-
-    // This is optimized to reduce allocations.  A decent
-    // buffer is allocated to read strings, and reused for
-    // keys and values.  It will be expanded as necessary.
-    if (count > 0) {
-      baggage = new HashMap<String, String>(count);
-      // Choose a size that we guess would fit most baggage k/v lengths.
-      byte[] tmp = new byte[32];
-
-      for (int i = 0; i < count; i++) {
-        int len = carrier.getInt();
-        tmp = checkBuf(len, tmp);
-        carrier.get(tmp, 0, len);
-        final String key = new String(tmp, 0, len, DEFAULT_CHARSET);
-
-        len = carrier.getInt();
-        tmp = checkBuf(len, tmp);
-        carrier.get(tmp, 0, len);
-        final String value = new String(tmp, 0, len, DEFAULT_CHARSET);
-
-        baggage.put(key, value);
-      }
-    }
-
-    return objectFactory.createSpanContext(
-      traceIdHigh,
-      traceIdLow,
-      spanId,
-      parentId,
-      flags,
-      baggage,
-      null);
-  }
-
-  @Override
-  public String toString() {
-    StringBuilder buffer = new StringBuilder();
-    buffer
-        .append("BinaryCodec{")
-        .append("ObjectFactory=" + objectFactory.getClass().getName())
-        .append('}');
-    return buffer.toString();
-  }
-
-  /**
-   * Returns a builder for BinaryCodec.
-   *
-   * @return Builder
-   */
-  public static Builder builder() {
-    return new Builder();
-  }
-
-  /**
-   * This class is the builder for the BinaryCodec.
-   */
-  public static class Builder {
-
-    private JaegerObjectFactory objectFactory = new JaegerObjectFactory();
+    /**
+     * Explicitly define the charset we will use.
+     */
+    private static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
     /**
-     * Set object factory to use for construction of JaegerSpanContext subclass instances.
+     * Object factory used to construct JaegerSpanContext subclass instances.
+     */
+    private final JaegerObjectFactory objectFactory;
+
+    /**
+     * Constructor for a Binary Codec.
+     */
+    public BinaryCodec() {
+        this(builder());
+    }
+
+    private BinaryCodec(Builder builder) {
+        this.objectFactory = builder.objectFactory;
+    }
+
+    /**
+     * Writes a String Key/Value pair into a ByteArrayOutputStream
      *
-     * @param objectFactory JaegerObjectFactory subclass instance.
+     * @param buffer buffer to write the integer into
+     * @param key    key of the KV pair
+     * @param value  value of the KV pair
      */
-    public Builder withObjectFactory(JaegerObjectFactory objectFactory) {
-      this.objectFactory = objectFactory;
-      return this;
+    private void writeKvPair(ByteBuffer buffer, String key, String value) {
+        byte[] bytes;
+
+        bytes = key.getBytes(DEFAULT_CHARSET);
+        buffer.putInt(bytes.length);
+        buffer.put(bytes);
+
+        bytes = value.getBytes(DEFAULT_CHARSET);
+        buffer.putInt(bytes.length);
+        buffer.put(bytes);
     }
 
     /**
-     * Builds a BinaryCodec object. 
+     * Convenience method to check a buffer for size and reallocate if necessary.
+     *
+     * @param len   the length required
+     * @param bytes the buffer of bytes to be used
+     * @return a byte array of the correct size.
      */
-    public BinaryCodec build() {
-      return new BinaryCodec(this);
+    private static byte[] checkBuf(int len, byte[] bytes) {
+        return len <= bytes.length ? bytes : new byte[len];
     }
-  }
+
+    @Override
+    public void inject(JaegerSpanContext spanContext, ByteBuffer carrier) {
+        // Java defaults to big endian (network order), but enforce it just
+        // in case the carrier set the wrong byte order before passing it in.
+        if (carrier.order() != ByteOrder.BIG_ENDIAN) {
+            throw new IllegalStateException("Carrier byte order must be big endian.");
+        }
+
+        // Write the IDs
+        carrier.putLong(spanContext.getTraceIdHigh());
+        carrier.putLong(spanContext.getTraceIdLow());
+        carrier.putLong(spanContext.getSpanId());
+        carrier.putLong(spanContext.getParentId());
+
+        // Write the flags (byte)
+        carrier.put(spanContext.getFlags());
+
+        // write the baggage count.
+        carrier.putInt(spanContext.baggageCount());
+
+        // write the kv/pars into the stream
+        for (Map.Entry<String, String> entry : spanContext.baggageItems()) {
+            writeKvPair(carrier, entry.getKey(), entry.getValue());
+        }
+    }
+
+    @Override
+    public JaegerSpanContext extract(ByteBuffer carrier) {
+        // Java defaults to big endian (network order), but enforce it just
+        // in case the carrier is using the wrong byte order.
+        if (carrier.order() != ByteOrder.BIG_ENDIAN) {
+            throw new IllegalStateException("Carrier byte order must be big endian.");
+        }
+
+        Map<String, String> baggage = null;
+
+        // Do not require the carrier implemention to rewind.
+        carrier.rewind();
+
+
+        long traceIdHigh = carrier.getLong();
+        long traceIdLow = carrier.getLong();
+        long spanId = carrier.getLong();
+        long parentId = carrier.getLong();
+        byte flags = carrier.get();
+        int count = carrier.getInt();
+
+        // This is optimized to reduce allocations.  A decent
+        // buffer is allocated to read strings, and reused for
+        // keys and values.  It will be expanded as necessary.
+        if (count > 0) {
+            baggage = new HashMap<String, String>(count);
+            // Choose a size that we guess would fit most baggage k/v lengths.
+            byte[] tmp = new byte[32];
+
+            for (int i = 0; i < count; i++) {
+                int len = carrier.getInt();
+                tmp = checkBuf(len, tmp);
+                carrier.get(tmp, 0, len);
+                final String key = new String(tmp, 0, len, DEFAULT_CHARSET);
+
+                len = carrier.getInt();
+                tmp = checkBuf(len, tmp);
+                carrier.get(tmp, 0, len);
+                final String value = new String(tmp, 0, len, DEFAULT_CHARSET);
+
+                baggage.put(key, value);
+            }
+        }
+
+        return objectFactory.createSpanContext(
+                traceIdHigh,
+                traceIdLow,
+                spanId,
+                parentId,
+                flags,
+                baggage,
+                null);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder buffer = new StringBuilder();
+        buffer
+                .append("BinaryCodec{")
+                .append("ObjectFactory=" + objectFactory.getClass().getName())
+                .append('}');
+        return buffer.toString();
+    }
+
+    /**
+     * Returns a builder for BinaryCodec.
+     *
+     * @return Builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * This class is the builder for the BinaryCodec.
+     */
+    public static class Builder {
+
+        private JaegerObjectFactory objectFactory = new JaegerObjectFactory();
+
+        /**
+         * Set object factory to use for construction of JaegerSpanContext subclass instances.
+         *
+         * @param objectFactory JaegerObjectFactory subclass instance.
+         */
+        public Builder withObjectFactory(JaegerObjectFactory objectFactory) {
+            this.objectFactory = objectFactory;
+            return this;
+        }
+
+        /**
+         * Builds a BinaryCodec object.
+         */
+        public BinaryCodec build() {
+            return new BinaryCodec(this);
+        }
+    }
 }

@@ -15,5 +15,5 @@
 package io.jaegertracing.internal.metrics;
 
 public interface Counter {
-  void inc(long delta);
+    void inc(long delta);
 }

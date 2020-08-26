@@ -41,47 +41,47 @@ import lombok.val;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class MicrosAccurateClock implements Clock {
 
-  static final Clock INSTANCE = new MicrosAccurateClock();
+    static final Clock INSTANCE = new MicrosAccurateClock();
 
-  private static final Method NOW;
-  private static final Object EPOCH;
-  private static final Object CHRONO_UNIT_MICROS;
-  private static final Method CHRONO_UNIT_BETWEEN;
+    private static final Method NOW;
+    private static final Object EPOCH;
+    private static final Object CHRONO_UNIT_MICROS;
+    private static final Method CHRONO_UNIT_BETWEEN;
 
-  static {
-    try {
-      val classLoader = ClassLoader.getSystemClassLoader();
-      val instant = classLoader.loadClass("java.time.Instant");
-      NOW = instant.getMethod("now");
-      EPOCH = instant.getField("EPOCH").get(null);
+    static {
+        try {
+            val classLoader = ClassLoader.getSystemClassLoader();
+            val instant = classLoader.loadClass("java.time.Instant");
+            NOW = instant.getMethod("now");
+            EPOCH = instant.getField("EPOCH").get(null);
 
-      val chronoUnit = classLoader.loadClass("java.time.temporal.ChronoUnit");
-      CHRONO_UNIT_MICROS = chronoUnit.getField("MICROS").get(null);
+            val chronoUnit = classLoader.loadClass("java.time.temporal.ChronoUnit");
+            CHRONO_UNIT_MICROS = chronoUnit.getField("MICROS").get(null);
 
-      val temporal = classLoader.loadClass("java.time.temporal.Temporal");
-      CHRONO_UNIT_BETWEEN = chronoUnit.getMethod("between", temporal, temporal);
-    } catch (Exception x) {
-      throw new IllegalStateException("Could not setup microseconds accurate time supplier", x);
+            val temporal = classLoader.loadClass("java.time.temporal.Temporal");
+            CHRONO_UNIT_BETWEEN = chronoUnit.getMethod("between", temporal, temporal);
+        } catch (Exception x) {
+            throw new IllegalStateException("Could not setup microseconds accurate time supplier", x);
+        }
     }
-  }
 
-  @Override
-  public long currentTimeMicros() {
-    try {
-      val now = NOW.invoke(null);
-      return (Long) CHRONO_UNIT_BETWEEN.invoke(CHRONO_UNIT_MICROS, EPOCH, now);
-    } catch (Exception x) {
-      throw new IllegalStateException("Could not acquire current microseconds accurate timestamp", x);
+    @Override
+    public long currentTimeMicros() {
+        try {
+            val now = NOW.invoke(null);
+            return (Long) CHRONO_UNIT_BETWEEN.invoke(CHRONO_UNIT_MICROS, EPOCH, now);
+        } catch (Exception x) {
+            throw new IllegalStateException("Could not acquire current microseconds accurate timestamp", x);
+        }
     }
-  }
 
-  @Override
-  public long currentNanoTicks() {
-    return System.nanoTime();
-  }
+    @Override
+    public long currentNanoTicks() {
+        return System.nanoTime();
+    }
 
-  @Override
-  public boolean isMicrosAccurate() {
-    return true;
-  }
+    @Override
+    public boolean isMicrosAccurate() {
+        return true;
+    }
 }

@@ -18,5 +18,5 @@ import lombok.Value;
 
 @Value
 public class ProbabilisticSamplingStrategy {
-  double samplingRate;
+    double samplingRate;
 }

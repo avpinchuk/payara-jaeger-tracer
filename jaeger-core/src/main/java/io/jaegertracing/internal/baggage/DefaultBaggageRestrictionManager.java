@@ -21,18 +21,18 @@ import io.jaegertracing.spi.BaggageRestrictionManager;
  * that allows all baggage.
  */
 public class DefaultBaggageRestrictionManager implements BaggageRestrictionManager {
-  private final Restriction restriction;
+    private final Restriction restriction;
 
-  public DefaultBaggageRestrictionManager() {
-    this(DEFAULT_MAX_VALUE_LENGTH);
-  }
+    public DefaultBaggageRestrictionManager() {
+        this(DEFAULT_MAX_VALUE_LENGTH);
+    }
 
-  DefaultBaggageRestrictionManager(int maxValueLength) {
-    this.restriction = Restriction.of(true, maxValueLength);
-  }
+    DefaultBaggageRestrictionManager(int maxValueLength) {
+        this.restriction = Restriction.of(true, maxValueLength);
+    }
 
-  @Override
-  public Restriction getRestriction(String service, String key) {
-    return restriction;
-  }
+    @Override
+    public Restriction getRestriction(String service, String key) {
+        return restriction;
+    }
 }

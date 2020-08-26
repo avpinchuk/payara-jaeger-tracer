@@ -26,44 +26,44 @@ import lombok.ToString;
 @SuppressWarnings("EqualsHashCode")
 @ToString
 public class RateLimitingSampler implements Sampler {
-  public static final String TYPE = "ratelimiting";
+    public static final String TYPE = "ratelimiting";
 
-  @Getter
-  private final double maxTracesPerSecond;
-  private final Map<String, Object> tags;
+    @Getter
+    private final double maxTracesPerSecond;
+    private final Map<String, Object> tags;
 
-  @ToString.Exclude private final RateLimiter rateLimiter;
+    @ToString.Exclude private final RateLimiter rateLimiter;
 
-  public RateLimitingSampler(double maxTracesPerSecond) {
-    this.maxTracesPerSecond = maxTracesPerSecond;
-    double maxBalance = maxTracesPerSecond < 1.0 ? 1.0 : maxTracesPerSecond;
-    this.rateLimiter = new RateLimiter(maxTracesPerSecond, maxBalance);
+    public RateLimitingSampler(double maxTracesPerSecond) {
+        this.maxTracesPerSecond = maxTracesPerSecond;
+        double maxBalance = maxTracesPerSecond < 1.0 ? 1.0 : maxTracesPerSecond;
+        this.rateLimiter = new RateLimiter(maxTracesPerSecond, maxBalance);
 
-    Map<String, Object> tags = new HashMap<String, Object>();
-    tags.put(Constants.SAMPLER_TYPE_TAG_KEY, TYPE);
-    tags.put(Constants.SAMPLER_PARAM_TAG_KEY, maxTracesPerSecond);
-    this.tags = Collections.unmodifiableMap(tags);
-  }
-
-  @Override
-  public SamplingStatus sample(String operation, long id) {
-    return SamplingStatus.of(this.rateLimiter.checkCredit(1.0), tags);
-  }
-
-  @Override
-  public boolean equals(Object other) {
-    if (this == other) {
-      return true;
+        Map<String, Object> tags = new HashMap<String, Object>();
+        tags.put(Constants.SAMPLER_TYPE_TAG_KEY, TYPE);
+        tags.put(Constants.SAMPLER_PARAM_TAG_KEY, maxTracesPerSecond);
+        this.tags = Collections.unmodifiableMap(tags);
     }
-    if (other instanceof RateLimitingSampler) {
-      return this.maxTracesPerSecond == ((RateLimitingSampler) other).maxTracesPerSecond;
-    }
-    return false;
-  }
 
-  /**
-   * Only implemented to maintain compatibility with sampling interface.
-   */
-  @Override
-  public void close() {}
+    @Override
+    public SamplingStatus sample(String operation, long id) {
+        return SamplingStatus.of(this.rateLimiter.checkCredit(1.0), tags);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (other instanceof RateLimitingSampler) {
+            return this.maxTracesPerSecond == ((RateLimitingSampler) other).maxTracesPerSecond;
+        }
+        return false;
+    }
+
+    /**
+     * Only implemented to maintain compatibility with sampling interface.
+     */
+    @Override
+    public void close() {}
 }

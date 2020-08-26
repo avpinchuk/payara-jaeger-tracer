@@ -31,64 +31,64 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 public final class GuaranteedThroughputSampler implements Sampler {
-  public static final String TYPE = "lowerbound";
+    public static final String TYPE = "lowerbound";
 
-  private ProbabilisticSampler probabilisticSampler;
-  private RateLimitingSampler lowerBoundSampler;
-  private Map<String, Object> tags;
+    private ProbabilisticSampler probabilisticSampler;
+    private RateLimitingSampler lowerBoundSampler;
+    private Map<String, Object> tags;
 
-  public GuaranteedThroughputSampler(double samplingRate, double lowerBound) {
-    tags = new HashMap<String, Object>();
-    tags.put(Constants.SAMPLER_TYPE_TAG_KEY, TYPE);
-    tags.put(Constants.SAMPLER_PARAM_TAG_KEY, samplingRate);
+    public GuaranteedThroughputSampler(double samplingRate, double lowerBound) {
+        tags = new HashMap<String, Object>();
+        tags.put(Constants.SAMPLER_TYPE_TAG_KEY, TYPE);
+        tags.put(Constants.SAMPLER_PARAM_TAG_KEY, samplingRate);
 
-    probabilisticSampler = new ProbabilisticSampler(samplingRate);
-    lowerBoundSampler = new RateLimitingSampler(lowerBound);
-  }
-
-  /**
-   * Updates the probabilistic and lowerBound samplers
-   * @param samplingRate The sampling rate for probabilistic sampling
-   * @param lowerBound The lower bound limit for lower bound sampling
-   * @return true iff any samplers were updated
-   */
-  public synchronized boolean update(double samplingRate, double lowerBound) {
-    boolean isUpdated = false;
-    if (samplingRate != probabilisticSampler.getSamplingRate()) {
-      probabilisticSampler = new ProbabilisticSampler(samplingRate);
-      tags.put(Constants.SAMPLER_PARAM_TAG_KEY, samplingRate);
-      isUpdated = true;
-    }
-    if (lowerBound != lowerBoundSampler.getMaxTracesPerSecond()) {
-      lowerBoundSampler = new RateLimitingSampler(lowerBound);
-      isUpdated = true;
-    }
-    return isUpdated;
-  }
-
-  /**
-   * Calls {@link Sampler#sample(String, long)} (String, long)} on both samplers, returning true for
-   * {@link SamplingStatus#isSampled} if either samplers set #isSampled to true.
-   * The tags corresponding to the sampler that returned true are set on {@link SamplingStatus#tags}
-   * If both samplers return true, tags for {@link ProbabilisticSampler} is given priority.
-   * @param operation The operation name, which is ignored by this sampler
-   * @param id The traceId on the span
-   */
-  @Override
-  public synchronized SamplingStatus sample(String operation, long id) {
-    SamplingStatus probabilisticSamplingStatus = probabilisticSampler.sample(operation, id);
-    SamplingStatus lowerBoundSamplingStatus = lowerBoundSampler.sample(operation, id);
-
-    if (probabilisticSamplingStatus.isSampled()) {
-      return probabilisticSamplingStatus;
+        probabilisticSampler = new ProbabilisticSampler(samplingRate);
+        lowerBoundSampler = new RateLimitingSampler(lowerBound);
     }
 
-    return SamplingStatus.of(lowerBoundSamplingStatus.isSampled(), tags);
-  }
+    /**
+     * Updates the probabilistic and lowerBound samplers
+     * @param samplingRate The sampling rate for probabilistic sampling
+     * @param lowerBound The lower bound limit for lower bound sampling
+     * @return true iff any samplers were updated
+     */
+    public synchronized boolean update(double samplingRate, double lowerBound) {
+        boolean isUpdated = false;
+        if (samplingRate != probabilisticSampler.getSamplingRate()) {
+            probabilisticSampler = new ProbabilisticSampler(samplingRate);
+            tags.put(Constants.SAMPLER_PARAM_TAG_KEY, samplingRate);
+            isUpdated = true;
+        }
+        if (lowerBound != lowerBoundSampler.getMaxTracesPerSecond()) {
+            lowerBoundSampler = new RateLimitingSampler(lowerBound);
+            isUpdated = true;
+        }
+        return isUpdated;
+    }
 
-  @Override
-  public synchronized void close() {
-    probabilisticSampler.close();
-    lowerBoundSampler.close();
-  }
+    /**
+     * Calls {@link Sampler#sample(String, long)} (String, long)} on both samplers, returning true for
+     * {@link SamplingStatus#isSampled} if either samplers set #isSampled to true.
+     * The tags corresponding to the sampler that returned true are set on {@link SamplingStatus#tags}
+     * If both samplers return true, tags for {@link ProbabilisticSampler} is given priority.
+     * @param operation The operation name, which is ignored by this sampler
+     * @param id The traceId on the span
+     */
+    @Override
+    public synchronized SamplingStatus sample(String operation, long id) {
+        SamplingStatus probabilisticSamplingStatus = probabilisticSampler.sample(operation, id);
+        SamplingStatus lowerBoundSamplingStatus = lowerBoundSampler.sample(operation, id);
+
+        if (probabilisticSamplingStatus.isSampled()) {
+            return probabilisticSamplingStatus;
+        }
+
+        return SamplingStatus.of(lowerBoundSamplingStatus.isSampled(), tags);
+    }
+
+    @Override
+    public synchronized void close() {
+        probabilisticSampler.close();
+        lowerBoundSampler.close();
+    }
 }

@@ -48,124 +48,124 @@ import java.util.Map;
  * passed to {@link JaegerTracer.Builder#baggageRestrictionManager}
  */
 public class B3TextMapCodec implements Codec<TextMap> {
-  protected static final String TRACE_ID_NAME = "X-B3-TraceId";
-  protected static final String SPAN_ID_NAME = "X-B3-SpanId";
-  protected static final String PARENT_SPAN_ID_NAME = "X-B3-ParentSpanId";
-  protected static final String SAMPLED_NAME = "X-B3-Sampled";
-  protected static final String FLAGS_NAME = "X-B3-Flags";
-  protected static final String BAGGAGE_PREFIX = "baggage-";
-  // NOTE: uber's flags aren't the same as B3/Finagle ones
-  protected static final byte SAMPLED_FLAG = 1;
-  protected static final byte DEBUG_FLAG = 2;
+    protected static final String TRACE_ID_NAME = "X-B3-TraceId";
+    protected static final String SPAN_ID_NAME = "X-B3-SpanId";
+    protected static final String PARENT_SPAN_ID_NAME = "X-B3-ParentSpanId";
+    protected static final String SAMPLED_NAME = "X-B3-Sampled";
+    protected static final String FLAGS_NAME = "X-B3-Flags";
+    protected static final String BAGGAGE_PREFIX = "baggage-";
+    // NOTE: uber's flags aren't the same as B3/Finagle ones
+    protected static final byte SAMPLED_FLAG = 1;
+    protected static final byte DEBUG_FLAG = 2;
 
-  private static final PrefixedKeys keys = new PrefixedKeys();
-  private final String baggagePrefix;
-  private final JaegerObjectFactory objectFactory;
-
-  /**
-   * @deprecated use {@link Builder} instead
-   */
-  @Deprecated
-  public B3TextMapCodec() {
-    this(new Builder());
-  }
-
-  private B3TextMapCodec(Builder builder) {
-    this.baggagePrefix = builder.baggagePrefix;
-    this.objectFactory = builder.objectFactory;
-  }
-
-  @Override
-  public void inject(JaegerSpanContext spanContext, TextMap carrier) {
-    carrier.put(TRACE_ID_NAME, // Use HexCode instead of getTraceId to ensure zipkin compatibility
-            HexCodec.toLowerHex(spanContext.getTraceIdHigh(), spanContext.getTraceIdLow()));
-    if (spanContext.getParentId() != 0L) { // Conventionally, parent id == 0 means the root span
-      carrier.put(PARENT_SPAN_ID_NAME, HexCodec.toLowerHex(spanContext.getParentId()));
-    }
-    carrier.put(SPAN_ID_NAME, HexCodec.toLowerHex(spanContext.getSpanId()));
-    carrier.put(SAMPLED_NAME, spanContext.isSampled() ? "1" : "0");
-    if (spanContext.isDebug()) {
-      carrier.put(FLAGS_NAME, "1");
-    }
-    for (Map.Entry<String, String> entry : spanContext.baggageItems()) {
-      carrier.put(keys.prefixedKey(entry.getKey(), baggagePrefix), entry.getValue());
-    }
-  }
-
-  @Override
-  public JaegerSpanContext extract(TextMap carrier) {
-    Long traceIdLow = null;
-    Long traceIdHigh = 0L; // It's enough to check for a null low trace id
-    Long spanId = null;
-    Long parentId = 0L; // Conventionally, parent id == 0 means the root span
-    byte flags = 0;
-    Map<String, String> baggage = null;
-    for (Map.Entry<String, String> entry : carrier) {
-      if (entry.getKey().equalsIgnoreCase(SAMPLED_NAME)) {
-        String value = entry.getValue();
-        if ("1".equals(value) || "true".equalsIgnoreCase(value)) {
-          flags |= SAMPLED_FLAG;
-        }
-      } else if (entry.getKey().equalsIgnoreCase(TRACE_ID_NAME)) {
-        traceIdLow = HexCodec.lowerHexToUnsignedLong(entry.getValue());
-        traceIdHigh = HexCodec.higherHexToUnsignedLong(entry.getValue());
-      } else if (entry.getKey().equalsIgnoreCase(PARENT_SPAN_ID_NAME)) {
-        parentId = HexCodec.lowerHexToUnsignedLong(entry.getValue());
-      } else if (entry.getKey().equalsIgnoreCase(SPAN_ID_NAME)) {
-        spanId = HexCodec.lowerHexToUnsignedLong(entry.getValue());
-      } else if (entry.getKey().equalsIgnoreCase(FLAGS_NAME)) {
-        if (entry.getValue().equals("1")) {
-          flags |= DEBUG_FLAG;
-        }
-      } else if (entry.getKey().startsWith(baggagePrefix)) {
-        if (baggage == null) {
-          baggage = new HashMap<String, String>();
-        }
-        baggage.put(keys.unprefixedKey(entry.getKey(), baggagePrefix), entry.getValue());
-      }
-    }
-
-    if (null != traceIdLow && null != parentId && null != spanId) {
-      JaegerSpanContext spanContext = objectFactory.createSpanContext(
-          traceIdHigh,
-          traceIdLow,
-          spanId,
-          parentId,
-          flags,
-          Collections.<String, String>emptyMap(),
-          null // debugId
-          );
-      if (baggage != null) {
-        spanContext = spanContext.withBaggage(baggage);
-      }
-      return spanContext;
-    }
-    return null;
-  }
-
-  public static class Builder {
-    private String baggagePrefix = BAGGAGE_PREFIX;
-    private JaegerObjectFactory objectFactory = new JaegerObjectFactory();
+    private static final PrefixedKeys keys = new PrefixedKeys();
+    private final String baggagePrefix;
+    private final JaegerObjectFactory objectFactory;
 
     /**
-     * Specify baggage prefix. The default is {@value B3TextMapCodec#BAGGAGE_PREFIX}
+     * @deprecated use {@link Builder} instead
      */
-    public Builder withBaggagePrefix(String baggagePrefix) {
-      this.baggagePrefix = baggagePrefix;
-      return this;
+    @Deprecated
+    public B3TextMapCodec() {
+        this(new Builder());
     }
 
-    /**
-     * Specify JaegerSpanContext factory. Used for creating new span contexts. The default factory
-     * is an instance of {@link JaegerObjectFactory}.
-     */
-    public Builder withObjectFactory(JaegerObjectFactory objectFactory) {
-      this.objectFactory = objectFactory;
-      return this;
+    private B3TextMapCodec(Builder builder) {
+        this.baggagePrefix = builder.baggagePrefix;
+        this.objectFactory = builder.objectFactory;
     }
 
-    public B3TextMapCodec build() {
-      return new B3TextMapCodec(this);
+    @Override
+    public void inject(JaegerSpanContext spanContext, TextMap carrier) {
+        carrier.put(TRACE_ID_NAME, // Use HexCode instead of getTraceId to ensure zipkin compatibility
+                    HexCodec.toLowerHex(spanContext.getTraceIdHigh(), spanContext.getTraceIdLow()));
+        if (spanContext.getParentId() != 0L) { // Conventionally, parent id == 0 means the root span
+            carrier.put(PARENT_SPAN_ID_NAME, HexCodec.toLowerHex(spanContext.getParentId()));
+        }
+        carrier.put(SPAN_ID_NAME, HexCodec.toLowerHex(spanContext.getSpanId()));
+        carrier.put(SAMPLED_NAME, spanContext.isSampled() ? "1" : "0");
+        if (spanContext.isDebug()) {
+            carrier.put(FLAGS_NAME, "1");
+        }
+        for (Map.Entry<String, String> entry : spanContext.baggageItems()) {
+            carrier.put(keys.prefixedKey(entry.getKey(), baggagePrefix), entry.getValue());
+        }
     }
-  }
+
+    @Override
+    public JaegerSpanContext extract(TextMap carrier) {
+        Long traceIdLow = null;
+        Long traceIdHigh = 0L; // It's enough to check for a null low trace id
+        Long spanId = null;
+        Long parentId = 0L; // Conventionally, parent id == 0 means the root span
+        byte flags = 0;
+        Map<String, String> baggage = null;
+        for (Map.Entry<String, String> entry : carrier) {
+            if (entry.getKey().equalsIgnoreCase(SAMPLED_NAME)) {
+                String value = entry.getValue();
+                if ("1".equals(value) || "true".equalsIgnoreCase(value)) {
+                    flags |= SAMPLED_FLAG;
+                }
+            } else if (entry.getKey().equalsIgnoreCase(TRACE_ID_NAME)) {
+                traceIdLow = HexCodec.lowerHexToUnsignedLong(entry.getValue());
+                traceIdHigh = HexCodec.higherHexToUnsignedLong(entry.getValue());
+            } else if (entry.getKey().equalsIgnoreCase(PARENT_SPAN_ID_NAME)) {
+                parentId = HexCodec.lowerHexToUnsignedLong(entry.getValue());
+            } else if (entry.getKey().equalsIgnoreCase(SPAN_ID_NAME)) {
+                spanId = HexCodec.lowerHexToUnsignedLong(entry.getValue());
+            } else if (entry.getKey().equalsIgnoreCase(FLAGS_NAME)) {
+                if (entry.getValue().equals("1")) {
+                    flags |= DEBUG_FLAG;
+                }
+            } else if (entry.getKey().startsWith(baggagePrefix)) {
+                if (baggage == null) {
+                    baggage = new HashMap<String, String>();
+                }
+                baggage.put(keys.unprefixedKey(entry.getKey(), baggagePrefix), entry.getValue());
+            }
+        }
+
+        if (null != traceIdLow && null != parentId && null != spanId) {
+            JaegerSpanContext spanContext = objectFactory.createSpanContext(
+                    traceIdHigh,
+                    traceIdLow,
+                    spanId,
+                    parentId,
+                    flags,
+                    Collections.<String, String>emptyMap(),
+                    null // debugId
+            );
+            if (baggage != null) {
+                spanContext = spanContext.withBaggage(baggage);
+            }
+            return spanContext;
+        }
+        return null;
+    }
+
+    public static class Builder {
+        private String baggagePrefix = BAGGAGE_PREFIX;
+        private JaegerObjectFactory objectFactory = new JaegerObjectFactory();
+
+        /**
+         * Specify baggage prefix. The default is {@value B3TextMapCodec#BAGGAGE_PREFIX}
+         */
+        public Builder withBaggagePrefix(String baggagePrefix) {
+            this.baggagePrefix = baggagePrefix;
+            return this;
+        }
+
+        /**
+         * Specify JaegerSpanContext factory. Used for creating new span contexts. The default factory
+         * is an instance of {@link JaegerObjectFactory}.
+         */
+        public Builder withObjectFactory(JaegerObjectFactory objectFactory) {
+            this.objectFactory = objectFactory;
+            return this;
+        }
+
+        public B3TextMapCodec build() {
+            return new B3TextMapCodec(this);
+        }
+    }
 }

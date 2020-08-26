@@ -28,43 +28,43 @@ import lombok.ToString;
 
 @ToString
 public class HttpSamplingManager implements SamplingManager {
-  public static final String DEFAULT_HOST_PORT = "localhost:5778";
-  private final String hostPort;
+    public static final String DEFAULT_HOST_PORT = "localhost:5778";
+    private final String hostPort;
 
-  @ToString.Exclude private final Gson gson = new Gson();
+    @ToString.Exclude private final Gson gson = new Gson();
 
-  /**
-   * This constructor expects running sampling manager on {@link #DEFAULT_HOST_PORT}.
-   */
-  public HttpSamplingManager() {
-    this(DEFAULT_HOST_PORT);
-  }
-
-  public HttpSamplingManager(String hostPort) {
-    this.hostPort = hostPort != null ? hostPort : DEFAULT_HOST_PORT;
-  }
-
-  SamplingStrategyResponse parseJson(String json) {
-    try {
-      return gson.fromJson(json, SamplingStrategyResponse.class);
-    } catch (JsonSyntaxException e) {
-      throw new SamplingStrategyErrorException("Cannot deserialize json", e);
-    }
-  }
-
-  @Override
-  public SamplingStrategyResponse getSamplingStrategy(String serviceName)
-      throws SamplingStrategyErrorException {
-    String jsonString;
-    try {
-      jsonString =
-          makeGetRequest(
-              "http://" + hostPort + "/?service=" + URLEncoder.encode(serviceName, "UTF-8"));
-    } catch (IOException e) {
-      throw new SamplingStrategyErrorException(
-          "http call to get sampling strategy from local agent failed.", e);
+    /**
+     * This constructor expects running sampling manager on {@link #DEFAULT_HOST_PORT}.
+     */
+    public HttpSamplingManager() {
+        this(DEFAULT_HOST_PORT);
     }
 
-    return parseJson(jsonString);
-  }
+    public HttpSamplingManager(String hostPort) {
+        this.hostPort = hostPort != null ? hostPort : DEFAULT_HOST_PORT;
+    }
+
+    SamplingStrategyResponse parseJson(String json) {
+        try {
+            return gson.fromJson(json, SamplingStrategyResponse.class);
+        } catch (JsonSyntaxException e) {
+            throw new SamplingStrategyErrorException("Cannot deserialize json", e);
+        }
+    }
+
+    @Override
+    public SamplingStrategyResponse getSamplingStrategy(String serviceName)
+            throws SamplingStrategyErrorException {
+        String jsonString;
+        try {
+            jsonString =
+                    makeGetRequest(
+                            "http://" + hostPort + "/?service=" + URLEncoder.encode(serviceName, "UTF-8"));
+        } catch (IOException e) {
+            throw new SamplingStrategyErrorException(
+                    "http call to get sampling strategy from local agent failed.", e);
+        }
+
+        return parseJson(jsonString);
+    }
 }

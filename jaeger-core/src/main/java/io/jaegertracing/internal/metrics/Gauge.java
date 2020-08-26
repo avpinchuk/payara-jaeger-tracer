@@ -15,5 +15,5 @@
 package io.jaegertracing.internal.metrics;
 
 public interface Gauge {
-  void update(long amount);
+    void update(long amount);
 }

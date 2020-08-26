@@ -21,40 +21,40 @@ import java.util.List;
 
 public class CompositeCodec<T> implements Codec<T> {
 
-  private final java.util.List<Codec<T>> codecs;
+    private final java.util.List<Codec<T>> codecs;
 
-  public CompositeCodec(List<Codec<T>> codecs) {
-    this.codecs = new LinkedList<Codec<T>>(codecs);
-  }
-
-  @Override
-  public void inject(JaegerSpanContext spanContext, T carrier) {
-    for (Codec<T> codec : codecs) {
-      codec.inject(spanContext, carrier);
+    public CompositeCodec(List<Codec<T>> codecs) {
+        this.codecs = new LinkedList<Codec<T>>(codecs);
     }
-  }
 
-  @Override
-  public JaegerSpanContext extract(T carrier) {
-    for (Codec<T> codec : codecs) {
-      JaegerSpanContext context = codec.extract(carrier);
-      if (context != null) {
-        return context;
-      }
+    @Override
+    public void inject(JaegerSpanContext spanContext, T carrier) {
+        for (Codec<T> codec : codecs) {
+            codec.inject(spanContext, carrier);
+        }
     }
-    return null;
-  }
 
-  @Override
-  public String toString() {
-    StringBuilder buffer = new StringBuilder();
-    for (Codec<T> codec : codecs) {
-      if (buffer.length() > 0) {
-        buffer.append(" : ");
-      }
-      buffer.append(codec.toString());
+    @Override
+    public JaegerSpanContext extract(T carrier) {
+        for (Codec<T> codec : codecs) {
+            JaegerSpanContext context = codec.extract(carrier);
+            if (context != null) {
+                return context;
+            }
+        }
+        return null;
     }
-    return buffer.toString();
-  }
+
+    @Override
+    public String toString() {
+        StringBuilder buffer = new StringBuilder();
+        for (Codec<T> codec : codecs) {
+            if (buffer.length() > 0) {
+                buffer.append(" : ");
+            }
+            buffer.append(codec.toString());
+        }
+        return buffer.toString();
+    }
 
 }

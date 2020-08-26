@@ -18,7 +18,7 @@ import lombok.Value;
 
 @Value
 public class SamplingStrategyResponse {
-  ProbabilisticSamplingStrategy probabilisticSampling;
-  RateLimitingSamplingStrategy rateLimitingSampling;
-  OperationSamplingParameters operationSampling;
+    ProbabilisticSamplingStrategy probabilisticSampling;
+    RateLimitingSamplingStrategy rateLimitingSampling;
+    OperationSamplingParameters operationSampling;
 }

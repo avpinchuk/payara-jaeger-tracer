@@ -22,6 +22,6 @@ import lombok.Value;
  */
 @Value(staticConstructor = "of")
 public class Restriction {
-  boolean keyAllowed;
-  int maxValueLength;
+    boolean keyAllowed;
+    int maxValueLength;
 }

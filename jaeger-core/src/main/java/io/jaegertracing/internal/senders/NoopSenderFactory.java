@@ -20,13 +20,13 @@ import io.jaegertracing.spi.Sender;
 import io.jaegertracing.spi.SenderFactory;
 
 public class NoopSenderFactory implements SenderFactory {
-  @Override
-  public Sender getSender(Configuration.SenderConfiguration senderConfiguration) {
-    return new NoopSender();
-  }
+    @Override
+    public Sender getSender(Configuration.SenderConfiguration senderConfiguration) {
+        return new NoopSender();
+    }
 
-  @Override
-  public String getType() {
-    return "noop";
-  }
+    @Override
+    public String getType() {
+        return "noop";
+    }
 }

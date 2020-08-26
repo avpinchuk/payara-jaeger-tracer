@@ -25,17 +25,17 @@ import io.jaegertracing.internal.senders.SenderResolver;
  * {@link java.util.ServiceLoader}.
  */
 public interface SenderFactory {
-  /**
-   * Builds and/or selects the appropriate sender based on the given {@link Configuration.SenderConfiguration}
-   * @param senderConfiguration the sender configuration
-   * @return an appropriate sender based on the configuration, or {@link NoopSender}.
-   */
-  Sender getSender(Configuration.SenderConfiguration senderConfiguration);
+    /**
+     * Builds and/or selects the appropriate sender based on the given {@link Configuration.SenderConfiguration}
+     * @param senderConfiguration the sender configuration
+     * @return an appropriate sender based on the configuration, or {@link NoopSender}.
+     */
+    Sender getSender(Configuration.SenderConfiguration senderConfiguration);
 
-  /**
-   * The Factory's name. Can be specified via {@link Configuration#JAEGER_SENDER_FACTORY} to disambiguate
-   * the resolution, in case multiple senders are available via the service loader.
-   * @return a simple factory name
-   */
-  String getType();
+    /**
+     * The Factory's name. Can be specified via {@link Configuration#JAEGER_SENDER_FACTORY} to disambiguate
+     * the resolution, in case multiple senders are available via the service loader.
+     * @return a simple factory name
+     */
+    String getType();
 }

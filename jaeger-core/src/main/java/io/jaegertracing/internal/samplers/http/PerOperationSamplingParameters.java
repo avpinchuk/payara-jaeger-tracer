@@ -18,6 +18,6 @@ import lombok.Value;
 
 @Value
 public class PerOperationSamplingParameters {
-  String operation;
-  ProbabilisticSamplingStrategy probabilisticSampling;
+    String operation;
+    ProbabilisticSamplingStrategy probabilisticSampling;
 }

@@ -16,21 +16,21 @@ package io.jaegertracing.internal.exceptions;
 
 public class SenderException extends Exception {
 
-  private static final long serialVersionUID = 6770312992584114078L;
+    private static final long serialVersionUID = 6770312992584114078L;
 
-  private int droppedSpans;
+    private int droppedSpans;
 
-  public SenderException(String msg, Throwable cause, int droppedSpans) {
-    super(msg, cause);
-    this.droppedSpans = droppedSpans;
-  }
+    public SenderException(String msg, Throwable cause, int droppedSpans) {
+        super(msg, cause);
+        this.droppedSpans = droppedSpans;
+    }
 
-  public SenderException(String msg, int droppedSpans) {
-    super(msg);
-    this.droppedSpans = droppedSpans;
-  }
+    public SenderException(String msg, int droppedSpans) {
+        super(msg);
+        this.droppedSpans = droppedSpans;
+    }
 
-  public int getDroppedSpanCount() {
-    return droppedSpans;
-  }
+    public int getDroppedSpanCount() {
+        return droppedSpans;
+    }
 }

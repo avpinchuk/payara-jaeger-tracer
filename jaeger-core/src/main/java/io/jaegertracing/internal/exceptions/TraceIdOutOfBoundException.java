@@ -16,9 +16,9 @@ package io.jaegertracing.internal.exceptions;
 
 public class TraceIdOutOfBoundException extends RuntimeException {
 
-  private static final long serialVersionUID = 2332452744805504972L;
+    private static final long serialVersionUID = 2332452744805504972L;
 
-  public TraceIdOutOfBoundException(String message) {
-    super(message);
-  }
+    public TraceIdOutOfBoundException(String message) {
+        super(message);
+    }
 }

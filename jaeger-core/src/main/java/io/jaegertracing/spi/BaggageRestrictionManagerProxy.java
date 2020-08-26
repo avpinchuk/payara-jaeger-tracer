@@ -23,6 +23,6 @@ import java.util.List;
  * restrictions for specific service from a remote source i.e. jaeger-agent.
  */
 public interface BaggageRestrictionManagerProxy {
-  List<BaggageRestrictionResponse> getBaggageRestrictions(String serviceName)
-      throws BaggageRestrictionManagerException;
+    List<BaggageRestrictionResponse> getBaggageRestrictions(String serviceName)
+            throws BaggageRestrictionManagerException;
 }

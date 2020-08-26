@@ -29,23 +29,23 @@ import io.jaegertracing.internal.propagation.TextMapCodec;
  */
 public interface Extractor<T> {
 
-  /**
-   * <p>Called when {@link io.opentracing.Tracer#extract(io.opentracing.propagation.Format, Object)}
-   * is used. It should handle the logic behind extracting propagation-scheme
-   * specific information from carrier (e.g. http request headers, amqp message headers, etc.).</p>
-   *
-   * <p>This method must not modify the carrier</p>
-   *
-   * <p>All exceptions thrown from this method will be caught and logged on {@code WARN} level so
-   * that business code execution isn't affected. If possible, catch implementation specific
-   * exceptions and log more meaningful information.</p>
-   *
-   * @param carrier input that you extract Span information from, usually {@link
-   * io.opentracing.propagation.TextMap}.
-   * @return {@link JaegerSpanContext} or {@code null} if carrier doesn't contain tracing information, it
-   * is not valid or is incomplete
-   * @see B3TextMapCodec
-   * @see TextMapCodec
-   */
-  JaegerSpanContext extract(T carrier);
+    /**
+     * <p>Called when {@link io.opentracing.Tracer#extract(io.opentracing.propagation.Format, Object)}
+     * is used. It should handle the logic behind extracting propagation-scheme
+     * specific information from carrier (e.g. http request headers, amqp message headers, etc.).</p>
+     *
+     * <p>This method must not modify the carrier</p>
+     *
+     * <p>All exceptions thrown from this method will be caught and logged on {@code WARN} level so
+     * that business code execution isn't affected. If possible, catch implementation specific
+     * exceptions and log more meaningful information.</p>
+     *
+     * @param carrier input that you extract Span information from, usually {@link
+     * io.opentracing.propagation.TextMap}.
+     * @return {@link JaegerSpanContext} or {@code null} if carrier doesn't contain tracing information, it
+     * is not valid or is incomplete
+     * @see B3TextMapCodec
+     * @see TextMapCodec
+     */
+    JaegerSpanContext extract(T carrier);
 }

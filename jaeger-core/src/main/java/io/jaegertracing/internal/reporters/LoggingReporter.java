@@ -25,26 +25,26 @@ import org.slf4j.LoggerFactory;
  */
 @ToString
 public class LoggingReporter implements Reporter {
-  private final Logger logger;
+    private final Logger logger;
 
-  public LoggingReporter() {
-    this(null);
-  }
-
-  public LoggingReporter(Logger logger) {
-    if (logger == null) {
-      logger = LoggerFactory.getLogger(this.getClass());
+    public LoggingReporter() {
+        this(null);
     }
-    this.logger = logger;
-  }
 
-  @Override
-  public void report(JaegerSpan span) {
-    logger.info("Span reported: {}", span);
-  }
+    public LoggingReporter(Logger logger) {
+        if (logger == null) {
+            logger = LoggerFactory.getLogger(this.getClass());
+        }
+        this.logger = logger;
+    }
 
-  @Override
-  public void close() {
-    // nothing to do
-  }
+    @Override
+    public void report(JaegerSpan span) {
+        logger.info("Span reported: {}", span);
+    }
+
+    @Override
+    public void close() {
+        // nothing to do
+    }
 }

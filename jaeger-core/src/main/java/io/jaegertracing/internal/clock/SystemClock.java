@@ -27,33 +27,33 @@ import lombok.val;
  */
 public class SystemClock implements Clock {
 
-  private static final Clock DELEGATE;
+    private static final Clock DELEGATE;
 
-  private static int getJavaVersion() {
-    val sections = System.getProperty("java.version").split("\\.");
-    val major = Integer.parseInt(sections[0]);
-    return major == 1 ? Integer.parseInt(sections[1]) : major;
-  }
+    private static int getJavaVersion() {
+        val sections = System.getProperty("java.version").split("\\.");
+        val major = Integer.parseInt(sections[0]);
+        return major == 1 ? Integer.parseInt(sections[1]) : major;
+    }
 
-  static {
-    val version = getJavaVersion();
-    DELEGATE = version >= 9
-        ? MicrosAccurateClock.INSTANCE
-        : MillisAccurrateClock.INSTANCE;
-  }
+    static {
+        val version = getJavaVersion();
+        DELEGATE = version >= 9
+                   ? MicrosAccurateClock.INSTANCE
+                   : MillisAccurrateClock.INSTANCE;
+    }
 
-  @Override
-  public long currentTimeMicros() {
-    return DELEGATE.currentTimeMicros();
-  }
+    @Override
+    public long currentTimeMicros() {
+        return DELEGATE.currentTimeMicros();
+    }
 
-  @Override
-  public long currentNanoTicks() {
-    return DELEGATE.currentNanoTicks();
-  }
+    @Override
+    public long currentNanoTicks() {
+        return DELEGATE.currentNanoTicks();
+    }
 
-  @Override
-  public boolean isMicrosAccurate() {
-    return DELEGATE.isMicrosAccurate();
-  }
+    @Override
+    public boolean isMicrosAccurate() {
+        return DELEGATE.isMicrosAccurate();
+    }
 }

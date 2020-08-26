@@ -24,46 +24,46 @@ import lombok.ToString;
 @SuppressWarnings("EqualsHashCode")
 @ToString
 public class ConstSampler implements Sampler {
-  public static final String TYPE = "const";
+    public static final String TYPE = "const";
 
-  private final boolean decision;
+    private final boolean decision;
 
-  private final Map<String, Object> tags;
+    private final Map<String, Object> tags;
 
-  public ConstSampler(boolean decision) {
-    this.decision = decision;
-    Map<String, Object> tags = new HashMap<String, Object>();
-    tags.put(Constants.SAMPLER_TYPE_TAG_KEY, TYPE);
-    tags.put(Constants.SAMPLER_PARAM_TAG_KEY, decision);
-    this.tags = Collections.unmodifiableMap(tags);
-  }
-
-  /**
-   * @param id A long that represents the traceid used to make a sampling decision the command line
-   * arguments.
-   * @return A boolean that says whether to sample.
-   */
-  @Override
-  public SamplingStatus sample(String operation, long id) {
-    return SamplingStatus.of(decision, tags);
-  }
-
-  @Override
-  public boolean equals(Object other) {
-    if (this == other) {
-      return true;
+    public ConstSampler(boolean decision) {
+        this.decision = decision;
+        Map<String, Object> tags = new HashMap<String, Object>();
+        tags.put(Constants.SAMPLER_TYPE_TAG_KEY, TYPE);
+        tags.put(Constants.SAMPLER_PARAM_TAG_KEY, decision);
+        this.tags = Collections.unmodifiableMap(tags);
     }
-    if (other instanceof ConstSampler) {
-      return this.decision == ((ConstSampler) other).decision;
-    }
-    return false;
-  }
 
-  /**
-   * Only implemented to satisfy the sampler interface
-   */
-  @Override
-  public void close() {
-    // nothing to do
-  }
+    /**
+     * @param id A long that represents the traceid used to make a sampling decision the command line
+     * arguments.
+     * @return A boolean that says whether to sample.
+     */
+    @Override
+    public SamplingStatus sample(String operation, long id) {
+        return SamplingStatus.of(decision, tags);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (other instanceof ConstSampler) {
+            return this.decision == ((ConstSampler) other).decision;
+        }
+        return false;
+    }
+
+    /**
+     * Only implemented to satisfy the sampler interface
+     */
+    @Override
+    public void close() {
+        // nothing to do
+    }
 }

@@ -19,6 +19,6 @@ import lombok.Value;
 
 @Value(staticConstructor = "of")
 public class SamplingStatus {
-  boolean isSampled;
-  Map<String, Object> tags;
+    boolean isSampled;
+    Map<String, Object> tags;
 }

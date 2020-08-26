@@ -18,6 +18,6 @@ import lombok.Value;
 
 @Value
 public class BaggageRestrictionResponse {
-  String baggageKey;
-  int maxValueLength;
+    String baggageKey;
+    int maxValueLength;
 }

@@ -30,20 +30,20 @@ import io.opentracing.propagation.Format;
  */
 public interface Injector<T> {
 
-  /**
-   * <p>Called when {@link io.opentracing.Tracer#inject(io.opentracing.SpanContext, Format, Object)}
-   * is used. It should handle the logic behind injecting propagation scheme
-   * specific information into the carrier (e.g. http request headers, amqp message headers,
-   * etc.).</p>
-   *
-   * <p>All exceptions thrown from this method will be caught and logged on {@code ERROR} level so
-   * that business code execution isn't affected. If possible, catch implementation specific
-   * exceptions and log more meaningful information.</p>
-   *
-   * @param spanContext span context that should be used to pass trace information with the carrier
-   * @param carrier holder of data that is used to pass tracing information between processes
-   * @see B3TextMapCodec
-   * @see TextMapCodec
-   */
-  void inject(JaegerSpanContext spanContext, T carrier);
+    /**
+     * <p>Called when {@link io.opentracing.Tracer#inject(io.opentracing.SpanContext, Format, Object)}
+     * is used. It should handle the logic behind injecting propagation scheme
+     * specific information into the carrier (e.g. http request headers, amqp message headers,
+     * etc.).</p>
+     *
+     * <p>All exceptions thrown from this method will be caught and logged on {@code ERROR} level so
+     * that business code execution isn't affected. If possible, catch implementation specific
+     * exceptions and log more meaningful information.</p>
+     *
+     * @param spanContext span context that should be used to pass trace information with the carrier
+     * @param carrier holder of data that is used to pass tracing information between processes
+     * @see B3TextMapCodec
+     * @see TextMapCodec
+     */
+    void inject(JaegerSpanContext spanContext, T carrier);
 }

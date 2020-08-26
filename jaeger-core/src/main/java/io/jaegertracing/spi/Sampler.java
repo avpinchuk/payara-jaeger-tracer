@@ -20,15 +20,15 @@ import io.jaegertracing.internal.samplers.SamplingStatus;
  * Sampler is responsible for deciding if a new trace should be sampled and captured for storage.
  */
 public interface Sampler {
-  /**
-   * @param operation The operation name set on the span
-   * @param id The traceId on the span
-   * @return whether or not the new trace should be sampled
-   */
-  SamplingStatus sample(String operation, long id);
+    /**
+     * @param operation The operation name set on the span
+     * @param id The traceId on the span
+     * @return whether or not the new trace should be sampled
+     */
+    SamplingStatus sample(String operation, long id);
 
-  /**
-   * Release any resources used by the sampler.
-   */
-  void close();
+    /**
+     * Release any resources used by the sampler.
+     */
+    void close();
 }

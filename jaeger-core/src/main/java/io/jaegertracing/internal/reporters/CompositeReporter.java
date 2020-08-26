@@ -22,26 +22,26 @@ import lombok.ToString;
 
 @ToString
 public class CompositeReporter implements Reporter {
-  private final List<Reporter> reporters;
+    private final List<Reporter> reporters;
 
-  public CompositeReporter(Reporter... reporters) {
-    this.reporters = new ArrayList<Reporter>();
-    for (int i = 0; i < reporters.length; i++) {
-      this.reporters.add(reporters[i]);
+    public CompositeReporter(Reporter... reporters) {
+        this.reporters = new ArrayList<Reporter>();
+        for (int i = 0; i < reporters.length; i++) {
+            this.reporters.add(reporters[i]);
+        }
     }
-  }
 
-  @Override
-  public void report(JaegerSpan span) {
-    for (Reporter reporter : this.reporters) {
-      reporter.report(span);
+    @Override
+    public void report(JaegerSpan span) {
+        for (Reporter reporter : this.reporters) {
+            reporter.report(span);
+        }
     }
-  }
 
-  @Override
-  public void close() {
-    for (Reporter reporter : this.reporters) {
-      reporter.close();
+    @Override
+    public void close() {
+        for (Reporter reporter : this.reporters) {
+            reporter.close();
+        }
     }
-  }
 }

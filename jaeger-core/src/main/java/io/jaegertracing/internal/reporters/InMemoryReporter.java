@@ -22,31 +22,31 @@ import lombok.ToString;
 
 @ToString
 public class InMemoryReporter implements Reporter {
-  private final List<JaegerSpan> spans;
+    private final List<JaegerSpan> spans;
 
-  public InMemoryReporter() {
-    this.spans = new ArrayList<JaegerSpan>();
-  }
-
-  @Override
-  public void report(JaegerSpan span) {
-    synchronized (this) {
-      spans.add(span);
+    public InMemoryReporter() {
+        this.spans = new ArrayList<JaegerSpan>();
     }
-  }
 
-  @Override
-  public void close() {}
-
-  public List<JaegerSpan> getSpans() {
-    synchronized (this) {
-      return spans;
+    @Override
+    public void report(JaegerSpan span) {
+        synchronized (this) {
+            spans.add(span);
+        }
     }
-  }
 
-  public void clear() {
-    synchronized (this) {
-      spans.clear();
+    @Override
+    public void close() {}
+
+    public List<JaegerSpan> getSpans() {
+        synchronized (this) {
+            return spans;
+        }
     }
-  }
+
+    public void clear() {
+        synchronized (this) {
+            spans.clear();
+        }
+    }
 }

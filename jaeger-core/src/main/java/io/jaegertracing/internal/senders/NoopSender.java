@@ -24,18 +24,18 @@ import lombok.ToString;
  */
 @ToString
 public class NoopSender implements Sender {
-  @Override
-  public int append(JaegerSpan span) {
-    return 1;
-  }
+    @Override
+    public int append(JaegerSpan span) {
+        return 1;
+    }
 
-  @Override
-  public int flush() {
-    return 0;
-  }
+    @Override
+    public int flush() {
+        return 0;
+    }
 
-  @Override
-  public int close() {
-    return 0;
-  }
+    @Override
+    public int close() {
+        return 0;
+    }
 }

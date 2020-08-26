@@ -27,20 +27,20 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class MillisAccurrateClock implements Clock {
 
-  static final Clock INSTANCE = new MillisAccurrateClock();
+    static final Clock INSTANCE = new MillisAccurrateClock();
 
-  @Override
-  public long currentTimeMicros() {
-    return System.currentTimeMillis() * 1000;
-  }
+    @Override
+    public long currentTimeMicros() {
+        return System.currentTimeMillis() * 1000;
+    }
 
-  @Override
-  public long currentNanoTicks() {
-    return System.nanoTime();
-  }
+    @Override
+    public long currentNanoTicks() {
+        return System.nanoTime();
+    }
 
-  @Override
-  public boolean isMicrosAccurate() {
-    return false;
-  }
+    @Override
+    public boolean isMicrosAccurate() {
+        return false;
+    }
 }

@@ -24,7 +24,7 @@ import io.jaegertracing.internal.baggage.Restriction;
  * baggage value.
  */
 public interface BaggageRestrictionManager {
-  int DEFAULT_MAX_VALUE_LENGTH = 2048;
+    int DEFAULT_MAX_VALUE_LENGTH = 2048;
 
-  Restriction getRestriction(String service, String key);
+    Restriction getRestriction(String service, String key);
 }

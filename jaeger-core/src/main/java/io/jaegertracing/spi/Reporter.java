@@ -21,7 +21,7 @@ import io.jaegertracing.internal.JaegerSpan;
  * spans. Default implementation is remote reporter that sends spans out of process.
  */
 public interface Reporter {
-  void report(JaegerSpan span);
+    void report(JaegerSpan span);
 
-  void close();
+    void close();
 }

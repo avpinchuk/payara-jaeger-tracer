@@ -20,9 +20,9 @@ import lombok.ToString;
 
 @ToString
 public class NoopReporter implements Reporter {
-  @Override
-  public void report(JaegerSpan span) {}
+    @Override
+    public void report(JaegerSpan span) {}
 
-  @Override
-  public void close() {}
+    @Override
+    public void close() {}
 }

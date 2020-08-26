@@ -37,81 +37,81 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 @Getter(AccessLevel.PACKAGE) //Visible for testing
 public class PerOperationSampler implements Sampler {
-  private final int maxOperations;
-  private Map<String, GuaranteedThroughputSampler> operationNameToSampler;
-  private ProbabilisticSampler defaultSampler;
-  private double lowerBound;
+    private final int maxOperations;
+    private Map<String, GuaranteedThroughputSampler> operationNameToSampler;
+    private ProbabilisticSampler defaultSampler;
+    private double lowerBound;
 
-  public PerOperationSampler(int maxOperations, OperationSamplingParameters strategies) {
-    this(maxOperations,
-         new HashMap<String, GuaranteedThroughputSampler>(),
-         new ProbabilisticSampler(strategies.getDefaultSamplingProbability()),
-         strategies.getDefaultLowerBoundTracesPerSecond());
-    update(strategies);
-  }
-
-  /**
-   * Updates the GuaranteedThroughputSampler for each operation
-   * @param strategies The parameters for operation sampling
-   * @return true if any samplers were updated
-   */
-  public synchronized boolean update(final OperationSamplingParameters strategies) {
-    boolean isUpdated = false;
-
-    lowerBound = strategies.getDefaultLowerBoundTracesPerSecond();
-    ProbabilisticSampler defaultSampler = new ProbabilisticSampler(strategies.getDefaultSamplingProbability());
-
-    if (!defaultSampler.equals(this.defaultSampler)) {
-      this.defaultSampler = defaultSampler;
-      isUpdated = true;
+    public PerOperationSampler(int maxOperations, OperationSamplingParameters strategies) {
+        this(maxOperations,
+             new HashMap<String, GuaranteedThroughputSampler>(),
+             new ProbabilisticSampler(strategies.getDefaultSamplingProbability()),
+             strategies.getDefaultLowerBoundTracesPerSecond());
+        update(strategies);
     }
 
-    Map<String, GuaranteedThroughputSampler> newOpsSamplers = new HashMap<String, GuaranteedThroughputSampler>();
-    //add or update operation samples using given strategies
-    for (PerOperationSamplingParameters strategy : strategies.getPerOperationStrategies()) {
-      String operation = strategy.getOperation();
-      double samplingRate = strategy.getProbabilisticSampling().getSamplingRate();
-      GuaranteedThroughputSampler sampler = operationNameToSampler.get(operation);
-      if (sampler != null) {
-        isUpdated = sampler.update(samplingRate, lowerBound) || isUpdated;
-        newOpsSamplers.put(operation, sampler);
-      } else {
-        if (newOpsSamplers.size() < maxOperations) {
-          sampler = new GuaranteedThroughputSampler(samplingRate, lowerBound);
-          newOpsSamplers.put(operation, sampler);
-          isUpdated = true;
-        } else {
-          log.info("Exceeded the maximum number of operations({}) for per operations sampling",
-              maxOperations);
+    /**
+     * Updates the GuaranteedThroughputSampler for each operation
+     * @param strategies The parameters for operation sampling
+     * @return true if any samplers were updated
+     */
+    public synchronized boolean update(final OperationSamplingParameters strategies) {
+        boolean isUpdated = false;
+
+        lowerBound = strategies.getDefaultLowerBoundTracesPerSecond();
+        ProbabilisticSampler defaultSampler = new ProbabilisticSampler(strategies.getDefaultSamplingProbability());
+
+        if (!defaultSampler.equals(this.defaultSampler)) {
+            this.defaultSampler = defaultSampler;
+            isUpdated = true;
         }
-      }
+
+        Map<String, GuaranteedThroughputSampler> newOpsSamplers = new HashMap<String, GuaranteedThroughputSampler>();
+        //add or update operation samples using given strategies
+        for (PerOperationSamplingParameters strategy : strategies.getPerOperationStrategies()) {
+            String operation = strategy.getOperation();
+            double samplingRate = strategy.getProbabilisticSampling().getSamplingRate();
+            GuaranteedThroughputSampler sampler = operationNameToSampler.get(operation);
+            if (sampler != null) {
+                isUpdated = sampler.update(samplingRate, lowerBound) || isUpdated;
+                newOpsSamplers.put(operation, sampler);
+            } else {
+                if (newOpsSamplers.size() < maxOperations) {
+                    sampler = new GuaranteedThroughputSampler(samplingRate, lowerBound);
+                    newOpsSamplers.put(operation, sampler);
+                    isUpdated = true;
+                } else {
+                    log.info("Exceeded the maximum number of operations({}) for per operations sampling",
+                             maxOperations);
+                }
+            }
+        }
+
+        operationNameToSampler = newOpsSamplers;
+        return isUpdated;
     }
 
-    operationNameToSampler = newOpsSamplers;
-    return isUpdated;
-  }
+    @Override
+    public synchronized SamplingStatus sample(String operation, long id) {
+        GuaranteedThroughputSampler sampler = operationNameToSampler.get(operation);
+        if (sampler != null) {
+            return sampler.sample(operation, id);
+        }
 
-  @Override
-  public synchronized SamplingStatus sample(String operation, long id) {
-    GuaranteedThroughputSampler sampler = operationNameToSampler.get(operation);
-    if (sampler != null) {
-      return sampler.sample(operation, id);
+        if (operationNameToSampler.size() < maxOperations) {
+            sampler = new GuaranteedThroughputSampler(defaultSampler.getSamplingRate(), lowerBound);
+            operationNameToSampler.put(operation, sampler);
+            return sampler.sample(operation, id);
+        }
+
+        return defaultSampler.sample(operation, id);
     }
 
-    if (operationNameToSampler.size() < maxOperations) {
-      sampler = new GuaranteedThroughputSampler(defaultSampler.getSamplingRate(), lowerBound);
-      operationNameToSampler.put(operation, sampler);
-      return sampler.sample(operation, id);
+    @Override
+    public synchronized void close() {
+        defaultSampler.close();
+        for (GuaranteedThroughputSampler sampler : operationNameToSampler.values()) {
+            sampler.close();
+        }
     }
-
-    return defaultSampler.sample(operation, id);
-  }
-
-  @Override
-  public synchronized void close() {
-    defaultSampler.close();
-    for (GuaranteedThroughputSampler sampler : operationNameToSampler.values()) {
-      sampler.close();
-    }
-  }
 }

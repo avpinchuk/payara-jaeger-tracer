@@ -18,6 +18,6 @@ import io.jaegertracing.internal.exceptions.SamplingStrategyErrorException;
 import io.jaegertracing.internal.samplers.http.SamplingStrategyResponse;
 
 public interface SamplingManager {
-  SamplingStrategyResponse getSamplingStrategy(String serviceName)
-      throws SamplingStrategyErrorException;
+    SamplingStrategyResponse getSamplingStrategy(String serviceName)
+            throws SamplingStrategyErrorException;
 }

@@ -15,5 +15,5 @@
 package io.jaegertracing.internal.metrics;
 
 public interface Timer {
-  void durationMicros(long time);
+    void durationMicros(long time);
 }

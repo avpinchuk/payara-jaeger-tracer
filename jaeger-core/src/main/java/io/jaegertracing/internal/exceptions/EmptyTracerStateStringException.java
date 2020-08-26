@@ -16,9 +16,9 @@ package io.jaegertracing.internal.exceptions;
 
 public class EmptyTracerStateStringException extends RuntimeException {
 
-  private static final long serialVersionUID = 9082120636922517100L;
+    private static final long serialVersionUID = 9082120636922517100L;
 
-  public EmptyTracerStateStringException() {
-    super("Cannot convert empty string to tracer state");
-  }
+    public EmptyTracerStateStringException() {
+        super("Cannot convert empty string to tracer state");
+    }
 }

@@ -18,13 +18,13 @@ import java.io.IOException;
 
 public class BaggageRestrictionManagerException extends IOException {
 
-  private static final long serialVersionUID = -7154971918992152963L;
+    private static final long serialVersionUID = -7154971918992152963L;
 
-  public BaggageRestrictionManagerException(String msg) {
-    super(msg);
-  }
+    public BaggageRestrictionManagerException(String msg) {
+        super(msg);
+    }
 
-  public BaggageRestrictionManagerException(String msg, Throwable cause) {
-    super(msg, cause);
-  }
+    public BaggageRestrictionManagerException(String msg, Throwable cause) {
+        super(msg, cause);
+    }
 }

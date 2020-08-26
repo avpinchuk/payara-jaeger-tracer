@@ -19,7 +19,7 @@ import lombok.Value;
 
 @Value
 public class OperationSamplingParameters {
-  double defaultSamplingProbability;
-  double defaultLowerBoundTracesPerSecond;
-  List<PerOperationSamplingParameters> perOperationStrategies;
+    double defaultSamplingProbability;
+    double defaultLowerBoundTracesPerSecond;
+    List<PerOperationSamplingParameters> perOperationStrategies;
 }
