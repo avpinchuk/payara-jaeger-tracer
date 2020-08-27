@@ -43,7 +43,7 @@ public class Metrics {
             }
 
             StringBuilder metricBuilder = new StringBuilder(metricsPrefix);
-            HashMap<String, String> tags = new HashMap<String, String>();
+            HashMap<String, String> tags = new HashMap<>();
 
             Annotation[] annotations = field.getAnnotations();
             for (Annotation anno : annotations) {
@@ -88,7 +88,7 @@ public class Metrics {
         StringBuilder sb = new StringBuilder();
         sb.append(name);
 
-        SortedMap<String, String> sortedTags = new TreeMap<String, String>(tags);
+        SortedMap<String, String> sortedTags = new TreeMap<>(tags);
         for (Map.Entry<String, String> entry: sortedTags.entrySet()) {
             sb.append(".");
             sb.append(entry.getKey());

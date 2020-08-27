@@ -25,7 +25,7 @@ public class InMemoryReporter implements Reporter {
     private final List<JaegerSpan> spans;
 
     public InMemoryReporter() {
-        this.spans = new ArrayList<JaegerSpan>();
+        this.spans = new ArrayList<>();
     }
 
     @Override

@@ -24,7 +24,7 @@ public class CompositeCodec<T> implements Codec<T> {
     private final java.util.List<Codec<T>> codecs;
 
     public CompositeCodec(List<Codec<T>> codecs) {
-        this.codecs = new LinkedList<Codec<T>>(codecs);
+        this.codecs = new LinkedList<>(codecs);
     }
 
     @Override

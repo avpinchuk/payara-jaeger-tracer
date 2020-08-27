@@ -25,47 +25,29 @@ import java.util.concurrent.atomic.AtomicLong;
  * purposes.
  */
 public class InMemoryMetricsFactory implements MetricsFactory {
-    private Map<String, AtomicLong> counters = new ConcurrentHashMap<String, AtomicLong>();
-    private Map<String, AtomicLong> timers = new ConcurrentHashMap<String, AtomicLong>();
-    private Map<String, AtomicLong> gauges = new ConcurrentHashMap<String, AtomicLong>();
+    private final Map<String, AtomicLong> counters = new ConcurrentHashMap<>();
+    private final Map<String, AtomicLong> timers = new ConcurrentHashMap<>();
+    private final Map<String, AtomicLong> gauges = new ConcurrentHashMap<>();
 
     @Override
     public Counter createCounter(String name, Map<String, String> tags) {
         final AtomicLong value = new AtomicLong(0);
         counters.put(Metrics.addTagsToMetricName(name, tags), value);
-
-        return new Counter() {
-            @Override
-            public void inc(long delta) {
-                value.addAndGet(delta);
-            }
-        };
+        return value::addAndGet;
     }
 
     @Override
     public Timer createTimer(final String name, final Map<String, String> tags) {
         final AtomicLong value = new AtomicLong(0);
         timers.put(Metrics.addTagsToMetricName(name, tags), value);
-
-        return new Timer() {
-            @Override
-            public void durationMicros(long time) {
-                value.addAndGet(time);
-            }
-        };
+        return value::addAndGet;
     }
 
     @Override
     public Gauge createGauge(final String name, final Map<String, String> tags) {
         final AtomicLong value = new AtomicLong(0);
         gauges.put(Metrics.addTagsToMetricName(name, tags), value);
-
-        return new Gauge() {
-            @Override
-            public void update(long amount) {
-                value.getAndSet(amount);
-            }
-        };
+        return value::getAndSet;
     }
 
     /**
@@ -146,7 +128,7 @@ public class InMemoryMetricsFactory implements MetricsFactory {
         }
 
         String[] entries = tags.split(",");
-        Map<String, String> tagsAsMap = new HashMap<String, String>(entries.length);
+        Map<String, String> tagsAsMap = new HashMap<>(entries.length);
         for (String entry : entries) {
             String[] keyValue = entry.split("=");
             if (keyValue.length == 2) {

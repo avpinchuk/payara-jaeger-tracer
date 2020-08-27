@@ -56,7 +56,7 @@ public class RemoteReporter implements Reporter {
         this.sender = sender;
         this.metrics = metrics;
         this.closeEnqueueTimeout = closeEnqueueTimeout;
-        commandQueue = new ArrayBlockingQueue<Command>(maxQueueSize);
+        commandQueue = new ArrayBlockingQueue<>(maxQueueSize);
 
         // start a thread to append spans
         queueProcessor = new QueueProcessor();
@@ -149,7 +149,7 @@ public class RemoteReporter implements Reporter {
 
     class CloseCommand implements Command {
         @Override
-        public void execute() throws SenderException {
+        public void execute() {
             queueProcessor.close();
         }
     }
@@ -168,7 +168,7 @@ public class RemoteReporter implements Reporter {
     @ToString
     class QueueProcessor implements Runnable {
         private boolean open = true;
-        private final Set<Class<?>> commandFailedBefore = new HashSet<Class<?>>();
+        private final Set<Class<?>> commandFailedBefore = new HashSet<>();
 
         @Override
         public void run() {
@@ -208,7 +208,7 @@ public class RemoteReporter implements Reporter {
         private Sender sender;
         private int flushInterval = DEFAULT_FLUSH_INTERVAL_MS;
         private int maxQueueSize = DEFAULT_MAX_QUEUE_SIZE;
-        private int closeEnqueTimeout = DEFAULT_CLOSE_ENQUEUE_TIMEOUT_MILLIS;
+        private int closeEnqueueTimeout = DEFAULT_CLOSE_ENQUEUE_TIMEOUT_MILLIS;
         private Metrics metrics;
 
         public Builder withFlushInterval(int flushInterval) {
@@ -232,7 +232,7 @@ public class RemoteReporter implements Reporter {
         }
 
         public Builder withCloseEnqueueTimeout(int closeEnqueueTimeoutMs) {
-            this.closeEnqueTimeout = closeEnqueueTimeoutMs;
+            this.closeEnqueueTimeout = closeEnqueueTimeoutMs;
             return this;
         }
 
@@ -243,7 +243,7 @@ public class RemoteReporter implements Reporter {
             if (metrics == null) {
                 metrics = new Metrics(new InMemoryMetricsFactory());
             }
-            return new RemoteReporter(sender, flushInterval, maxQueueSize, closeEnqueTimeout, metrics);
+            return new RemoteReporter(sender, flushInterval, maxQueueSize, closeEnqueueTimeout, metrics);
         }
     }
 }

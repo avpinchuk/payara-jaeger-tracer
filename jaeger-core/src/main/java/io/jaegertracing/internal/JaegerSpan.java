@@ -62,8 +62,8 @@ public class JaegerSpan implements Span {
         this.startTimeMicroseconds = startTimeMicroseconds;
         this.startTimeNanoTicks = startTimeNanoTicks;
         this.computeDurationViaNanoTicks = computeDurationViaNanoTicks;
-        this.tags = new HashMap<String, Object>();
-        this.references = references != null ? new ArrayList<Reference>(references) : null;
+        this.tags = new HashMap<>();
+        this.references = references != null ? new ArrayList<>(references) : null;
 
         for (Map.Entry<String, Object> tag : tags.entrySet()) {
             setTagAsObject(tag.getKey(), tag.getValue());
@@ -99,7 +99,7 @@ public class JaegerSpan implements Span {
 
     public Map<String, Object> getTags() {
         synchronized (this) {
-            return Collections.unmodifiableMap(new HashMap<String, Object>(tags));
+            return Collections.unmodifiableMap(new HashMap<>(tags));
         }
     }
 
@@ -128,7 +128,7 @@ public class JaegerSpan implements Span {
             if (logs == null) {
                 return null;
             }
-            return Collections.unmodifiableList(new ArrayList<LogData>(logs));
+            return Collections.unmodifiableList(new ArrayList<>(logs));
         }
     }
 
@@ -262,7 +262,7 @@ public class JaegerSpan implements Span {
                     fields = addExceptionLogs(fields);
                 }
                 if (logs == null) {
-                    this.logs = new ArrayList<LogData>();
+                    this.logs = new ArrayList<>();
                 }
                 logs.add(new LogData(timestampMicroseconds, event, fields));
             }
@@ -282,7 +282,7 @@ public class JaegerSpan implements Span {
             return fields;
         }
 
-        Map<String, Object> errorFields = new HashMap<String, Object>(fields);
+        Map<String, Object> errorFields = new HashMap<>(fields);
         Throwable loggedException = (Throwable) ex;
 
         if (fields.get(Fields.ERROR_KIND) == null) {

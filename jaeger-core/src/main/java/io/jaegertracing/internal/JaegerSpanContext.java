@@ -44,7 +44,7 @@ public class JaegerSpanContext implements SpanContext {
                 spanId,
                 parentId,
                 flags,
-                Collections.<String, String>emptyMap(),
+                Collections.emptyMap(),
                 null, // debugId
                 new JaegerObjectFactory());
     }
@@ -59,7 +59,7 @@ public class JaegerSpanContext implements SpanContext {
             String debugId,
             JaegerObjectFactory objectFactory) {
         if (baggage == null) {
-            baggage = Collections.<String, String>emptyMap();
+            baggage = Collections.emptyMap();
         }
         this.traceIdLow = traceIdLow;
         this.traceIdHigh = traceIdHigh;
@@ -74,7 +74,7 @@ public class JaegerSpanContext implements SpanContext {
 
     @Override
     public Iterable<Map.Entry<String, String>> baggageItems() {
-        return new HashMap<String, String>(baggage).entrySet();
+        return new HashMap<>(baggage).entrySet();
     }
 
     public String getBaggageItem(String key) {
@@ -149,7 +149,7 @@ public class JaegerSpanContext implements SpanContext {
     }
 
     public JaegerSpanContext withBaggageItem(String key, String val) {
-        Map<String, String> newBaggage = new HashMap<String, String>(this.baggage);
+        Map<String, String> newBaggage = new HashMap<>(this.baggage);
         if (val == null) {
             newBaggage.remove(key);
         } else {

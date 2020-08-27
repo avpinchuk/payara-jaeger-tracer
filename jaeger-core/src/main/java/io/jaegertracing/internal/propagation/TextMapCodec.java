@@ -35,6 +35,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@SuppressWarnings("StringBufferReplaceableByString")
 public class TextMapCodec implements Codec<TextMap> {
     /**
      * Key used to store serialized span context representation
@@ -86,7 +87,7 @@ public class TextMapCodec implements Codec<TextMap> {
             throw new TraceIdOutOfBoundException("Trace id [" + traceId + "] length is not withing 1 and 32");
         }
 
-        // TODO(isaachier): When we drop Java 1.6 support, use Long.parseUnsignedLong instead of using BigInteger.
+        // TODO: When we drop Java 1.6 support, use Long.parseUnsignedLong instead of using BigInteger.
         return new JaegerSpanContext(
                 high(traceId),
                 new BigInteger(traceId, 16).longValue(),
@@ -146,7 +147,7 @@ public class TextMapCodec implements Codec<TextMap> {
                 debugId = decodedValue(entry.getValue());
             } else if (key.startsWith(baggagePrefix)) {
                 if (baggage == null) {
-                    baggage = new HashMap<String, String>();
+                    baggage = new HashMap<>();
                 }
                 baggage.put(keys.unprefixedKey(key, baggagePrefix), decodedValue(entry.getValue()));
             } else if (key.equals(Constants.BAGGAGE_HEADER_KEY)) {
@@ -171,7 +172,7 @@ public class TextMapCodec implements Codec<TextMap> {
             String[] kv = part.split("\\s*=\\s*");
             if (kv.length == 2) {
                 if (baggage == null) {
-                    baggage = new HashMap<String, String>();
+                    baggage = new HashMap<>();
                 }
                 baggage.put(kv[0], kv[1]);
             } else {

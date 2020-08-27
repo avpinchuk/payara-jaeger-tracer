@@ -24,8 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 
 class PropagationRegistry {
 
-    private final Map<Format<?>, Injector<?>> injectors = new HashMap<Format<?>, Injector<?>>();
-    private final Map<Format<?>, Extractor<?>> extractors = new HashMap<Format<?>, Extractor<?>>();
+    private final Map<Format<?>, Injector<?>> injectors = new HashMap<>();
+    private final Map<Format<?>, Extractor<?>> extractors = new HashMap<>();
 
     @SuppressWarnings("unchecked")
     <T> Injector<T> getInjector(Format<T> format) {
@@ -38,11 +38,11 @@ class PropagationRegistry {
     }
 
     public <T> void register(Format<T> format, Injector<T> injector) {
-        injectors.put(format, new ExceptionCatchingInjectorDecorator<T>(injector));
+        injectors.put(format, new ExceptionCatchingInjectorDecorator<>(injector));
     }
 
     public <T> void register(Format<T> format, Extractor<T> extractor) {
-        extractors.put(format, new ExceptionCatchingExtractorDecorator<T>(extractor));
+        extractors.put(format, new ExceptionCatchingExtractorDecorator<>(extractor));
     }
 
     @RequiredArgsConstructor

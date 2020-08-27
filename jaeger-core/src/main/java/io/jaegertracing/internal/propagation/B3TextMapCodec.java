@@ -47,6 +47,7 @@ import java.util.Map;
  * Baggage whitelisting can be configured in {@link BaggageRestrictionManager} and then
  * passed to {@link JaegerTracer.Builder#baggageRestrictionManager}
  */
+@SuppressWarnings("JavadocReference")
 public class B3TextMapCodec implements Codec<TextMap> {
     protected static final String TRACE_ID_NAME = "X-B3-TraceId";
     protected static final String SPAN_ID_NAME = "X-B3-SpanId";
@@ -119,20 +120,21 @@ public class B3TextMapCodec implements Codec<TextMap> {
                 }
             } else if (entry.getKey().startsWith(baggagePrefix)) {
                 if (baggage == null) {
-                    baggage = new HashMap<String, String>();
+                    baggage = new HashMap<>();
                 }
                 baggage.put(keys.unprefixedKey(entry.getKey(), baggagePrefix), entry.getValue());
             }
         }
 
         if (null != traceIdLow && null != parentId && null != spanId) {
+            //noinspection ConstantConditions
             JaegerSpanContext spanContext = objectFactory.createSpanContext(
                     traceIdHigh,
                     traceIdLow,
                     spanId,
                     parentId,
                     flags,
-                    Collections.<String, String>emptyMap(),
+                    Collections.emptyMap(),
                     null // debugId
             );
             if (baggage != null) {

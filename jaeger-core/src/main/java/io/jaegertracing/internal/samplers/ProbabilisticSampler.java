@@ -45,7 +45,7 @@ public class ProbabilisticSampler implements Sampler {
         this.positiveSamplingBoundary = (long) (((1L << 63) - 1) * samplingRate);
         this.negativeSamplingBoundary = (long) ((1L << 63) * samplingRate);
 
-        Map<String, Object> tags = new HashMap<String, Object>();
+        Map<String, Object> tags = new HashMap<>();
         tags.put(Constants.SAMPLER_TYPE_TAG_KEY, TYPE);
         tags.put(Constants.SAMPLER_PARAM_TAG_KEY, samplingRate);
         this.tags = Collections.unmodifiableMap(tags);
@@ -55,7 +55,7 @@ public class ProbabilisticSampler implements Sampler {
      * Uses a trace id to make a sampling decision.
      *
      * @param id A long that represents the traceid used to make a sampling decision
-     * @return A boolean that says wheter or not to sample.
+     * @return A boolean that says whether or not to sample.
      */
     @Override
     public SamplingStatus sample(String operation, long id) {

@@ -44,7 +44,6 @@ import io.opentracing.propagation.TextMap;
 import java.nio.ByteBuffer;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -311,7 +310,7 @@ public class Configuration {
 
     public Configuration withTracerTags(Map<String, String> tracerTags) {
         if (tracerTags != null) {
-            this.tracerTags = new HashMap<String, String>(tracerTags);
+            this.tracerTags = new HashMap<>(tracerTags);
         }
         return this;
     }
@@ -431,13 +430,14 @@ public class Configuration {
     /**
      * CodecConfiguration can be used to support additional trace context propagation codec.
      */
+    @SuppressWarnings("UnusedReturnValue")
     public static class CodecConfiguration {
         private final Map<Format<?>, List<Codec<TextMap>>> codecs;
         private final Map<Format<?>, List<Codec<ByteBuffer>>> binaryCodecs;
 
         public CodecConfiguration() {
-            codecs = new HashMap<Format<?>, List<Codec<TextMap>>>();
-            binaryCodecs = new HashMap<Format<?>, List<Codec<ByteBuffer>>>();
+            codecs = new HashMap<>();
+            binaryCodecs = new HashMap<>();
         }
 
         public static CodecConfiguration fromEnv() {
@@ -452,7 +452,7 @@ public class Configuration {
         public static CodecConfiguration fromString(String propagation) {
             CodecConfiguration codecConfiguration = new CodecConfiguration();
             if (propagation != null) {
-                for (String format : Arrays.asList(propagation.split(","))) {
+                for (String format : propagation.split(",")) {
                     try {
                         codecConfiguration.withPropagation(Configuration.Propagation.valueOf(format.toUpperCase()));
                     } catch (IllegalArgumentException iae) {
@@ -503,22 +503,13 @@ public class Configuration {
         }
 
         private static void addCodec(Map<Format<?>, List<Codec<TextMap>>> codecs, Format<?> format, Codec<TextMap> codec) {
-            List<Codec<TextMap>> codecList = codecs.get(format);
-            if (codecList == null) {
-                codecList = new LinkedList<Codec<TextMap>>();
-                codecs.put(format, codecList);
-            }
+            List<Codec<TextMap>> codecList = codecs.computeIfAbsent(format, k -> new LinkedList<>());
             codecList.add(codec);
         }
 
         private static void addBinaryCodec(Map<Format<?>, List<Codec<ByteBuffer>>> codecs,
                                            Format<?> format, Codec<ByteBuffer> codec) {
-
-            List<Codec<ByteBuffer>> codecList = codecs.get(format);
-            if (codecList == null) {
-                codecList = new LinkedList<Codec<ByteBuffer>>();
-                codecs.put(format, codecList);
-            }
+            List<Codec<ByteBuffer>> codecList = codecs.computeIfAbsent(format, k -> new LinkedList<>());
             codecList.add(codec);
         }
 
@@ -527,26 +518,26 @@ public class Configuration {
             // configured propagation formats
             registerCodec(builder, Format.Builtin.HTTP_HEADERS);
             registerCodec(builder, Format.Builtin.TEXT_MAP);
-            registerBinaryCodec(builder, Format.Builtin.BINARY);
+            registerBinaryCodec(builder);
         }
 
         protected void registerCodec(JaegerTracer.Builder builder, Format<TextMap> format) {
             if (codecs.containsKey(format)) {
                 List<Codec<TextMap>> codecsForFormat = codecs.get(format);
                 Codec<TextMap> codec = codecsForFormat.size() == 1
-                                       ? codecsForFormat.get(0) : new CompositeCodec<TextMap>(codecsForFormat);
+                                       ? codecsForFormat.get(0) : new CompositeCodec<>(codecsForFormat);
                 builder.registerInjector(format, codec);
                 builder.registerExtractor(format, codec);
             }
         }
 
-        protected void registerBinaryCodec(JaegerTracer.Builder builder, Format<ByteBuffer> format) {
-            if (codecs.containsKey(format)) {
-                List<Codec<ByteBuffer>> codecsForFormat = binaryCodecs.get(format);
+        protected void registerBinaryCodec(JaegerTracer.Builder builder) {
+            if (codecs.containsKey(Format.Builtin.BINARY)) {
+                List<Codec<ByteBuffer>> codecsForFormat = binaryCodecs.get(Format.Builtin.BINARY);
                 Codec<ByteBuffer> codec = codecsForFormat.size() == 1
-                                          ? codecsForFormat.get(0) : new CompositeCodec<ByteBuffer>(codecsForFormat);
-                builder.registerInjector(format, codec);
-                builder.registerExtractor(format, codec);
+                                          ? codecsForFormat.get(0) : new CompositeCodec<>(codecsForFormat);
+                builder.registerInjector(Format.Builtin.BINARY, codec);
+                builder.registerExtractor(Format.Builtin.BINARY, codec);
             }
         }
     }
@@ -762,7 +753,7 @@ public class Configuration {
      * @param name The name of the system property
      */
     private static boolean getPropertyAsBool(String name) {
-        return Boolean.valueOf(getProperty(name));
+        return Boolean.parseBoolean(getProperty(name));
     }
 
     private static Map<String, String> tracerTagsFromEnv() {
@@ -774,7 +765,7 @@ public class Configuration {
                 String[] tagValue = tag.split("\\s*=\\s*");
                 if (tagValue.length == 2) {
                     if (tracerTagMaps == null) {
-                        tracerTagMaps = new HashMap<String, String>();
+                        tracerTagMaps = new HashMap<>();
                     }
                     tracerTagMaps.put(tagValue[0], resolveValue(tagValue[1]));
                 } else {

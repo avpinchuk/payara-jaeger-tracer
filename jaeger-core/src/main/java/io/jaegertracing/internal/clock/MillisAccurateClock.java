@@ -25,9 +25,9 @@ import lombok.NoArgsConstructor;
  * @see System#currentTimeMillis()
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-final class MillisAccurrateClock implements Clock {
+final class MillisAccurateClock implements Clock {
 
-    static final Clock INSTANCE = new MillisAccurrateClock();
+    static final Clock INSTANCE = new MillisAccurateClock();
 
     @Override
     public long currentTimeMicros() {

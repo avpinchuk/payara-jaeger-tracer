@@ -105,7 +105,7 @@ public class JaegerTracer implements Tracer, Closeable {
 
         this.version = loadVersion();
 
-        Map<String, Object> tags = new HashMap<String, Object>(builder.tags);
+        Map<String, Object> tags = new HashMap<>(builder.tags);
         tags.put(Constants.JAEGER_CLIENT_VERSION_TAG_KEY, this.version);
         if (tags.get(Constants.TRACER_HOSTNAME_TAG_KEY) == null) {
             String hostname = getHostName();
@@ -125,9 +125,7 @@ public class JaegerTracer implements Tracer, Closeable {
         } else {
             try {
                 ipv4 = Utils.ipToInt(ipTag.toString());
-            } catch (EmptyIpException e) {
-                ipv4 = 0;
-            } catch (NotFourOctetsException e) {
+            } catch (EmptyIpException | NotFourOctetsException e) {
                 ipv4 = 0;
             }
         }
@@ -138,13 +136,10 @@ public class JaegerTracer implements Tracer, Closeable {
             log.info("No shutdown hook registered: Please call close() manually on application shutdown.");
         } else {
             // register this tracer with a shutdown hook, to flush the spans before the VM shuts down
-            shutdownHook = new Thread() {
-                @Override
-                public void run() {
-                    shutdownHook = null;
-                    JaegerTracer.this.close();
-                }
-            };
+            shutdownHook = new Thread(() -> {
+                shutdownHook = null;
+                JaegerTracer.this.close();
+            });
             Runtime.getRuntime().addShutdownHook(shutdownHook);
         }
     }
@@ -245,7 +240,7 @@ public class JaegerTracer implements Tracer, Closeable {
 
         private static final long MIN_EPOCH_MICROSECONDS = 1000000000000000L;
 
-        private String operationName;
+        private final String operationName;
         private long startTimeMicroseconds;
         /**
          * In 99% situations there is only one parent (childOf), so we do not want to allocate
@@ -253,7 +248,7 @@ public class JaegerTracer implements Tracer, Closeable {
          */
         private List<Reference> references = Collections.emptyList();
 
-        private final Map<String, Object> tags = new HashMap<String, Object>();
+        private final Map<String, Object> tags = new HashMap<>();
         private boolean ignoreActiveSpan = false;
 
         protected SpanBuilder(String operationName) {
@@ -299,7 +294,7 @@ public class JaegerTracer implements Tracer, Closeable {
                 references = Collections.singletonList(new Reference(referencedContext, referenceType));
             } else {
                 if (references.size() == 1) {
-                    references = new ArrayList<Reference>(references);
+                    references = new ArrayList<>(references);
                 }
                 references.add(new Reference(referencedContext, referenceType));
             }
@@ -334,7 +329,6 @@ public class JaegerTracer implements Tracer, Closeable {
         private JaegerSpanContext createNewContext() {
             String debugId = getDebugId();
             long spanId = Utils.uniqueId();
-            long traceIdLow = spanId;
             long traceIdHigh = isUseTraceId128Bit() ? Utils.uniqueId() : 0;
 
             byte flags = 0;
@@ -343,7 +337,7 @@ public class JaegerTracer implements Tracer, Closeable {
                 tags.put(Constants.DEBUG_ID_HEADER_KEY, debugId);
                 metrics.traceStartedSampled.inc(1);
             } else {
-                // TODO: (prithvi) Don't assume operationName is set on creation
+                // TODO: Don't assume operationName is set on creation
                 SamplingStatus samplingStatus = sampler.sample(operationName, spanId);
                 if (samplingStatus.isSampled()) {
                     flags |= JaegerSpanContext.flagSampled;
@@ -356,7 +350,7 @@ public class JaegerTracer implements Tracer, Closeable {
 
             return getObjectFactory().createSpanContext(
                     traceIdHigh,
-                    traceIdLow,
+                    spanId,
                     spanId,
                     0,
                     flags,
@@ -375,7 +369,7 @@ public class JaegerTracer implements Tracer, Closeable {
             for (Reference reference : references) {
                 if (reference.getSpanContext().baggage() != null) {
                     if (baggage == null) {
-                        baggage = new HashMap<String, String>();
+                        baggage = new HashMap<>();
                     }
                     baggage.putAll(reference.getSpanContext().baggage());
                 }
@@ -519,6 +513,7 @@ public class JaegerTracer implements Tracer, Closeable {
     /**
      * Builds a {@link JaegerTracer} with options.
      */
+    @SuppressWarnings("UnusedReturnValue")
     public static class Builder {
         private Sampler sampler;
         private Reporter reporter;
@@ -526,7 +521,7 @@ public class JaegerTracer implements Tracer, Closeable {
         private Metrics metrics = new Metrics(new NoopMetricsFactory());
         private final String serviceName;
         private Clock clock = new SystemClock();
-        private Map<String, Object> tags = new HashMap<String, Object>();
+        private final Map<String, Object> tags = new HashMap<>();
         private boolean zipkinSharedRpcSpan;
         private ScopeManager scopeManager = new ThreadLocalScopeManager();
         private BaggageRestrictionManager baggageRestrictionManager = new DefaultBaggageRestrictionManager();
@@ -697,13 +692,10 @@ public class JaegerTracer implements Tracer, Closeable {
     public static String getVersionFromProperties() {
         String version;
         try {
-            InputStream is = JaegerTracer.class.getResourceAsStream("jaeger.properties");
-            try {
+            try (InputStream is = JaegerTracer.class.getResourceAsStream("jaeger.properties")) {
                 Properties prop = new Properties();
                 prop.load(is);
                 version = prop.getProperty(Constants.JAEGER_CLIENT_VERSION_TAG_KEY);
-            } finally {
-                is.close();
             }
         } catch (Exception e) {
             throw new RuntimeException("Cannot read jaeger.properties", e);

@@ -51,20 +51,20 @@ public class BaggageSetter {
      */
     public JaegerSpanContext setBaggage(JaegerSpan jaegerSpan, String key, String value) {
         Restriction restriction = restrictionManager.getRestriction(jaegerSpan.getServiceName(), key);
-        boolean truncated = false;
-        String prevItem = null;
+
         if (!restriction.isKeyAllowed()) {
             metrics.baggageUpdateFailure.inc(1);
-            logFields(jaegerSpan, key, value, prevItem, truncated, restriction.isKeyAllowed());
+            logFields(jaegerSpan, key, value, null, false, restriction.isKeyAllowed());
             return jaegerSpan.context();
         }
+
+        boolean truncated = false;
         if (value != null && value.length() > restriction.getMaxValueLength()) {
             truncated = true;
             value = value.substring(0, restriction.getMaxValueLength());
             metrics.baggageTruncate.inc(1);
         }
-        prevItem = jaegerSpan.getBaggageItem(key);
-        logFields(jaegerSpan, key, value, prevItem, truncated, restriction.isKeyAllowed());
+        logFields(jaegerSpan, key, value, jaegerSpan.getBaggageItem(key), truncated, restriction.isKeyAllowed());
         metrics.baggageUpdateSuccess.inc(1);
         return jaegerSpan.context().withBaggageItem(key, value);
     }
@@ -74,7 +74,7 @@ public class BaggageSetter {
         if (!jaegerSpan.context().isSampled()) {
             return;
         }
-        Map<String, String> fields = new HashMap<String, String>();
+        Map<String, String> fields = new HashMap<>();
         fields.put("event", "baggage");
         fields.put("key", key);
         fields.put("value", value);

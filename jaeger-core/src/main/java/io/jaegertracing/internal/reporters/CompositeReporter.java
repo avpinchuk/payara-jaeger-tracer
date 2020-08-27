@@ -17,6 +17,7 @@ package io.jaegertracing.internal.reporters;
 import io.jaegertracing.internal.JaegerSpan;
 import io.jaegertracing.spi.Reporter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import lombok.ToString;
 
@@ -25,10 +26,8 @@ public class CompositeReporter implements Reporter {
     private final List<Reporter> reporters;
 
     public CompositeReporter(Reporter... reporters) {
-        this.reporters = new ArrayList<Reporter>();
-        for (int i = 0; i < reporters.length; i++) {
-            this.reporters.add(reporters[i]);
-        }
+        this.reporters = new ArrayList<>();
+        this.reporters.addAll(Arrays.asList(reporters));
     }
 
     @Override

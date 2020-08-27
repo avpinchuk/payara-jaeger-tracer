@@ -23,8 +23,8 @@ import java.util.Map;
 import lombok.Getter;
 import lombok.ToString;
 
-@SuppressWarnings("EqualsHashCode")
 @ToString
+@SuppressWarnings("EqualsHashCode")
 public class RateLimitingSampler implements Sampler {
     public static final String TYPE = "ratelimiting";
 
@@ -36,10 +36,10 @@ public class RateLimitingSampler implements Sampler {
 
     public RateLimitingSampler(double maxTracesPerSecond) {
         this.maxTracesPerSecond = maxTracesPerSecond;
-        double maxBalance = maxTracesPerSecond < 1.0 ? 1.0 : maxTracesPerSecond;
+        double maxBalance = Math.max(maxTracesPerSecond, 1.0);
         this.rateLimiter = new RateLimiter(maxTracesPerSecond, maxBalance);
 
-        Map<String, Object> tags = new HashMap<String, Object>();
+        Map<String, Object> tags = new HashMap<>();
         tags.put(Constants.SAMPLER_TYPE_TAG_KEY, TYPE);
         tags.put(Constants.SAMPLER_PARAM_TAG_KEY, maxTracesPerSecond);
         this.tags = Collections.unmodifiableMap(tags);

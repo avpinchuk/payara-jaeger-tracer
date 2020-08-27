@@ -30,9 +30,9 @@ import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
-@SuppressWarnings("EqualsHashCode")
 @ToString
 @Slf4j
+@SuppressWarnings("EqualsHashCode")
 public class RemoteControlledSampler implements Sampler {
     public static final String TYPE = "remote";
     private static final int DEFAULT_POLLING_INTERVAL_MS = 60000;

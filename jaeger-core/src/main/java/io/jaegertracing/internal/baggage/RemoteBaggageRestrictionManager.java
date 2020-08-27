@@ -39,7 +39,7 @@ public class RemoteBaggageRestrictionManager implements BaggageRestrictionManage
     private final Metrics metrics;
     private final boolean denyBaggageOnInitializationFailure;
     private volatile boolean initialized;
-    private volatile Map<String, Restriction> restrictions = new HashMap<String, Restriction>();
+    private volatile Map<String, Restriction> restrictions = new HashMap<>();
     private final Restriction invalidRestriction;
     private final Restriction validRestriction;
 
@@ -92,7 +92,7 @@ public class RemoteBaggageRestrictionManager implements BaggageRestrictionManage
     }
 
     private void updateBaggageRestrictions(List<BaggageRestrictionResponse> restrictions) {
-        Map<String, Restriction> baggageRestrictions = new HashMap<String, Restriction>();
+        Map<String, Restriction> baggageRestrictions = new HashMap<>();
         for (BaggageRestrictionResponse restriction : restrictions) {
             baggageRestrictions.put(restriction.getBaggageKey(), Restriction.of(true, restriction.getMaxValueLength()));
         }
@@ -121,7 +121,7 @@ public class RemoteBaggageRestrictionManager implements BaggageRestrictionManage
     }
 
     public static class Builder {
-        private String serviceName;
+        private final String serviceName;
         private BaggageRestrictionManagerProxy proxy;
         private Metrics metrics;
         private boolean denyBaggageOnInitializationFailure;

@@ -21,7 +21,7 @@ import lombok.val;
  * given that the JVM supports it (JDK 9 and above).
  * <p>
  * The actual timestamp generation implementation for both scenarios can be
- * found in {@link MicrosAccurateClock} and {@link MillisAccurrateClock}.
+ * found in {@link MicrosAccurateClock} and {@link MillisAccurateClock}.
  *
  * @author <a href="mailto:ishinberg0@gmail.com">Idan Sheinberg</a>
  */
@@ -39,7 +39,7 @@ public class SystemClock implements Clock {
         val version = getJavaVersion();
         DELEGATE = version >= 9
                    ? MicrosAccurateClock.INSTANCE
-                   : MillisAccurrateClock.INSTANCE;
+                   : MillisAccurateClock.INSTANCE;
     }
 
     @Override

@@ -23,28 +23,16 @@ import java.util.Map;
 public class NoopMetricsFactory implements MetricsFactory {
     @Override
     public Counter createCounter(String name, Map<String, String> tags) {
-        return new Counter() {
-            @Override
-            public void inc(long delta) {
-            }
-        };
+        return delta -> { };
     }
 
     @Override
     public Timer createTimer(final String name, final Map<String, String> tags) {
-        return new Timer() {
-            @Override
-            public void durationMicros(long time) {
-            }
-        };
+        return time -> { };
     }
 
     @Override
     public Gauge createGauge(final String name, final Map<String, String> tags) {
-        return new Gauge() {
-            @Override
-            public void update(long amount) {
-            }
-        };
+        return amount -> { };
     }
 }

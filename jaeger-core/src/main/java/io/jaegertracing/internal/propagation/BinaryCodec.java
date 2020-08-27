@@ -18,10 +18,10 @@ import io.jaegertracing.internal.JaegerObjectFactory;
 import io.jaegertracing.internal.JaegerSpanContext;
 import io.jaegertracing.spi.Codec;
 
-import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,12 +41,13 @@ import java.util.Map;
  * IDs are 64 bits integers (long) serialized as:
  * | TraceID high | TraceID low | SpanID | Parent ID |
  */
+@SuppressWarnings("StringBufferReplaceableByString")
 public class BinaryCodec implements Codec<ByteBuffer> {
 
     /**
      * Explicitly define the charset we will use.
      */
-    private static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
+    private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
     /**
      * Object factory used to construct JaegerSpanContext subclass instances.
@@ -130,7 +131,7 @@ public class BinaryCodec implements Codec<ByteBuffer> {
 
         Map<String, String> baggage = null;
 
-        // Do not require the carrier implemention to rewind.
+        // Do not require the carrier implementation to rewind.
         carrier.rewind();
 
 
@@ -145,7 +146,7 @@ public class BinaryCodec implements Codec<ByteBuffer> {
         // buffer is allocated to read strings, and reused for
         // keys and values.  It will be expanded as necessary.
         if (count > 0) {
-            baggage = new HashMap<String, String>(count);
+            baggage = new HashMap<>(count);
             // Choose a size that we guess would fit most baggage k/v lengths.
             byte[] tmp = new byte[32];
 
@@ -179,7 +180,8 @@ public class BinaryCodec implements Codec<ByteBuffer> {
         StringBuilder buffer = new StringBuilder();
         buffer
                 .append("BinaryCodec{")
-                .append("ObjectFactory=" + objectFactory.getClass().getName())
+                .append("ObjectFactory=")
+                .append(objectFactory.getClass().getName())
                 .append('}');
         return buffer.toString();
     }

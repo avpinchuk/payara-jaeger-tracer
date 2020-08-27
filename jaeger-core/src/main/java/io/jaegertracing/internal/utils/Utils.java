@@ -19,6 +19,7 @@ import io.jaegertracing.internal.exceptions.NotFourOctetsException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Utils {
@@ -58,7 +59,7 @@ public class Utils {
     }
 
     public static boolean equals(Object a, Object b) {
-        return (a == b) || (a != null && a.equals(b));
+        return Objects.equals(a, b);
     }
 
     private Utils() {}

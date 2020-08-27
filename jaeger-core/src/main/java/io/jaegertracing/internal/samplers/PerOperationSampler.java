@@ -44,7 +44,7 @@ public class PerOperationSampler implements Sampler {
 
     public PerOperationSampler(int maxOperations, OperationSamplingParameters strategies) {
         this(maxOperations,
-             new HashMap<String, GuaranteedThroughputSampler>(),
+             new HashMap<>(),
              new ProbabilisticSampler(strategies.getDefaultSamplingProbability()),
              strategies.getDefaultLowerBoundTracesPerSecond());
         update(strategies);
@@ -66,7 +66,7 @@ public class PerOperationSampler implements Sampler {
             isUpdated = true;
         }
 
-        Map<String, GuaranteedThroughputSampler> newOpsSamplers = new HashMap<String, GuaranteedThroughputSampler>();
+        Map<String, GuaranteedThroughputSampler> newOpsSamplers = new HashMap<>();
         //add or update operation samples using given strategies
         for (PerOperationSamplingParameters strategy : strategies.getPerOperationStrategies()) {
             String operation = strategy.getOperation();

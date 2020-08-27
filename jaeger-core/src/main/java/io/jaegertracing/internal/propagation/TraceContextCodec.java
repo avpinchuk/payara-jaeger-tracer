@@ -60,7 +60,7 @@ public class TraceContextCodec implements Codec<TextMap> {
     }
 
     private JaegerSpanContext extractContextFromTraceParent(String traceparent, String tracestate, String debugId) {
-        // TODO(bdrutu): Do we need to verify that version is hex and that
+        // TODO: Do we need to verify that version is hex and that
         // for the version the length is the expected one?
         boolean isValid =
                 traceparent != null
@@ -68,8 +68,7 @@ public class TraceContextCodec implements Codec<TextMap> {
                 && (traceparent.length() == TRACEPARENT_HEADER_SIZE
                     || (traceparent.length() > TRACEPARENT_HEADER_SIZE
                         && traceparent.charAt(TRACEPARENT_HEADER_SIZE) == TRACEPARENT_DELIMITER))
-                && traceparent.charAt(SPAN_ID_OFFSET - 1) == TRACEPARENT_DELIMITER
-                && traceparent.charAt(TRACE_OPTION_OFFSET - 1) == TRACEPARENT_DELIMITER;
+                && traceparent.charAt(SPAN_ID_OFFSET - 1) == TRACEPARENT_DELIMITER;
         if (!isValid) {
             log.warn("Unparseable traceparent header. Returning null span context.");
             return null;
@@ -80,6 +79,7 @@ public class TraceContextCodec implements Codec<TextMap> {
         Long spanId = HexCodec.hexToUnsignedLong(traceparent, SPAN_ID_OFFSET, SPAN_ID_OFFSET + 16);
 
         boolean sampled = false;
+        //noinspection ConstantConditions
         long traceContextFlags = HexCodec.hexToUnsignedLong(traceparent, TRACE_OPTION_OFFSET, TRACE_OPTION_OFFSET + 2);
         if ((traceContextFlags & SAMPLED_FLAG) == SAMPLED_FLAG) {
             sampled = true;
@@ -90,13 +90,14 @@ public class TraceContextCodec implements Codec<TextMap> {
             return null;
         }
 
+        //noinspection ConstantConditions
         JaegerSpanContext spanContext = this.objectFactory.createSpanContext(
                 traceIdHigh,
                 traceIdLow,
                 spanId,
                 0,
                 sampled ? (byte) 1 : (byte) 0,
-                Collections.<String, String>emptyMap(), debugId);
+                Collections.emptyMap(), debugId);
         return spanContext.withTraceState(tracestate);
     }
 

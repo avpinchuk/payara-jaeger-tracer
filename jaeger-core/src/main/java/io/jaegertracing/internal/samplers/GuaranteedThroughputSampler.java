@@ -30,15 +30,16 @@ import lombok.ToString;
  */
 @ToString
 @EqualsAndHashCode
+@SuppressWarnings("JavadocReference")
 public final class GuaranteedThroughputSampler implements Sampler {
     public static final String TYPE = "lowerbound";
 
     private ProbabilisticSampler probabilisticSampler;
     private RateLimitingSampler lowerBoundSampler;
-    private Map<String, Object> tags;
+    private final Map<String, Object> tags;
 
     public GuaranteedThroughputSampler(double samplingRate, double lowerBound) {
-        tags = new HashMap<String, Object>();
+        tags = new HashMap<>();
         tags.put(Constants.SAMPLER_TYPE_TAG_KEY, TYPE);
         tags.put(Constants.SAMPLER_PARAM_TAG_KEY, samplingRate);
 
