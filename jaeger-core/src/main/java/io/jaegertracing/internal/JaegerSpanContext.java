@@ -18,6 +18,7 @@ package io.jaegertracing.internal;
 import io.jaegertracing.internal.propagation.TextMapCodec;
 import io.opentracing.SpanContext;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -171,6 +172,33 @@ public class JaegerSpanContext implements SpanContext {
                 .createSpanContext(traceIdHigh, traceIdLow, spanId, parentId, flags, baggage, debugId);
         spanContext.traceState = traceState;
         return spanContext;
+    }
+
+    /**
+     * Returns span context size in bytes.
+     *
+     * @return span context size in bytes
+     */
+    public int size() {
+        /*
+         * For reference, the binary format is:
+         * | IDs | flags | baggage count | key len | key | value len | value | ...
+         *
+         * The baggage count and lengths are 32 bit integers (int).
+         *
+         * IDs are 64 bits integers (long) serialized as:
+         * | TraceID high | TraceID low | SpanID | Parent ID |
+         */
+        int size = 0;
+        size += 4 * Long.BYTES; // IDs
+        size += Byte.BYTES;     // flags
+        size += Integer.BYTES;  // baggage count
+        for (Map.Entry<String, String> baggageItem : baggage.entrySet()) {
+            size += 2 * Integer.BYTES;  // key len + value len
+            size += baggageItem.getKey().getBytes(StandardCharsets.UTF_8).length;   // key
+            size += baggageItem.getValue().getBytes(StandardCharsets.UTF_8).length; // value
+        }
+        return size;
     }
 
     /**
