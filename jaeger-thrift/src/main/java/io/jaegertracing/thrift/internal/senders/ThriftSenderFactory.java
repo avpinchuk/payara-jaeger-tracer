@@ -13,40 +13,40 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @ToString
 public class ThriftSenderFactory implements SenderFactory {
-  @Override
-  public Sender getSender(Configuration.SenderConfiguration conf) {
-    if (null != conf.getEndpoint() && !conf.getEndpoint().isEmpty()) {
-      HttpSender.Builder httpSenderBuilder = new HttpSender.Builder(conf.getEndpoint());
-      if (null != conf.getAuthUsername() && !conf.getAuthUsername().isEmpty()
-          && null != conf.getAuthPassword() && !conf.getAuthPassword().isEmpty()) {
-        log.debug("Using HTTP Basic authentication with data from the environment variables.");
-        httpSenderBuilder.withAuth(conf.getAuthUsername(), conf.getAuthPassword());
-      } else if (null != conf.getAuthToken() && !conf.getAuthToken().isEmpty()) {
-        log.debug("Auth Token environment variable found.");
-        httpSenderBuilder.withAuth(conf.getAuthToken());
-      }
+    @Override
+    public Sender getSender(Configuration.SenderConfiguration conf) {
+        if (null != conf.getEndpoint() && !conf.getEndpoint().isEmpty()) {
+            HttpSender.Builder httpSenderBuilder = new HttpSender.Builder(conf.getEndpoint());
+            if (null != conf.getAuthUsername() && !conf.getAuthUsername().isEmpty()
+                && null != conf.getAuthPassword() && !conf.getAuthPassword().isEmpty()) {
+                log.debug("Using HTTP Basic authentication with data from the environment variables.");
+                httpSenderBuilder.withAuth(conf.getAuthUsername(), conf.getAuthPassword());
+            } else if (null != conf.getAuthToken() && !conf.getAuthToken().isEmpty()) {
+                log.debug("Auth Token environment variable found.");
+                httpSenderBuilder.withAuth(conf.getAuthToken());
+            }
 
-      log.debug("Using the HTTP Sender to send spans directly to the endpoint.");
-      return httpSenderBuilder.build();
+            log.debug("Using the HTTP Sender to send spans directly to the endpoint.");
+            return httpSenderBuilder.build();
+        }
+
+        log.debug("Using the UDP Sender to send spans to the agent.");
+        return new UdpSender(
+                stringOrDefault(conf.getAgentHost(), UdpSender.DEFAULT_AGENT_UDP_HOST),
+                numberOrDefault(conf.getAgentPort(), UdpSender.DEFAULT_AGENT_UDP_COMPACT_PORT).intValue(),
+                0 /* max packet size */);
     }
 
-    log.debug("Using the UDP Sender to send spans to the agent.");
-    return new UdpSender(
-        stringOrDefault(conf.getAgentHost(), UdpSender.DEFAULT_AGENT_UDP_HOST),
-        numberOrDefault(conf.getAgentPort(), UdpSender.DEFAULT_AGENT_UDP_COMPACT_PORT).intValue(),
-        0 /* max packet size */);
-  }
+    @Override
+    public String getType() {
+        return "thrift";
+    }
 
-  @Override
-  public String getType() {
-    return "thrift";
-  }
+    private static String stringOrDefault(String value, String defaultValue) {
+        return value != null && value.length() > 0 ? value : defaultValue;
+    }
 
-  private static String stringOrDefault(String value, String defaultValue) {
-    return value != null && value.length() > 0 ? value : defaultValue;
-  }
-
-  private static Number numberOrDefault(Number value, Number defaultValue) {
-    return value != null ? value : defaultValue;
-  }
+    private static Number numberOrDefault(Number value, Number defaultValue) {
+        return value != null ? value : defaultValue;
+    }
 }

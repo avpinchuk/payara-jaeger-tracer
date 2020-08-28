@@ -27,102 +27,102 @@ import lombok.ToString;
 @ToString
 public abstract class ThriftSender extends ThriftSenderBase implements Sender {
 
-  private Process process;
-  private int processBytesSize;
-  private int spanBytesSize;
+    private Process process;
+    private int processBytesSize;
+    private int spanBytesSize;
 
-  @ToString.Exclude private List<io.jaegertracing.thriftjava.Span> spanBuffer;
+    @ToString.Exclude private List<io.jaegertracing.thriftjava.Span> spanBuffer;
 
-  /**
-   * @param protocolType protocol type (compact or binary)
-   * @param maxPacketSize if 0 it will use default value {@value ThriftUdpTransport#MAX_PACKET_SIZE}
-   */
-  public ThriftSender(ProtocolType protocolType, int maxPacketSize) {
-    super(protocolType, maxPacketSize);
+    /**
+     * @param protocolType protocol type (compact or binary)
+     * @param maxPacketSize if 0 it will use default value {@value ThriftUdpTransport#MAX_PACKET_SIZE}
+     */
+    public ThriftSender(ProtocolType protocolType, int maxPacketSize) {
+        super(protocolType, maxPacketSize);
 
-    spanBuffer = new ArrayList<io.jaegertracing.thriftjava.Span>();
-  }
-
-  @Override
-  public int append(JaegerSpan span) throws SenderException {
-    if (process == null) {
-      process = new Process(span.getTracer().getServiceName());
-      process.setTags(JaegerThriftSpanConverter.buildTags(span.getTracer().tags()));
-      processBytesSize = calculateProcessSize(process);
+        spanBuffer = new ArrayList<io.jaegertracing.thriftjava.Span>();
     }
 
-    io.jaegertracing.thriftjava.Span thriftSpan = JaegerThriftSpanConverter.convertSpan(span);
-    int spanSize = calculateSpanSize(thriftSpan);
-    if (spanSize > getMaxSpanBytes()) {
-      throw new SenderException(String.format("ThriftSender received a span that was too large, size = %d, max = %d",
-          spanSize, getMaxSpanBytes()), null, 1);
+    @Override
+    public int append(JaegerSpan span) throws SenderException {
+        if (process == null) {
+            process = new Process(span.getTracer().getServiceName());
+            process.setTags(JaegerThriftSpanConverter.buildTags(span.getTracer().tags()));
+            processBytesSize = calculateProcessSize(process);
+        }
+
+        io.jaegertracing.thriftjava.Span thriftSpan = JaegerThriftSpanConverter.convertSpan(span);
+        int spanSize = calculateSpanSize(thriftSpan);
+        if (spanSize > getMaxSpanBytes()) {
+            throw new SenderException(String.format("ThriftSender received a span that was too large, size = %d, max = %d",
+                                                    spanSize, getMaxSpanBytes()), null, 1);
+        }
+
+        spanBytesSize += spanSize;
+        if (spanBytesSize <= getMaxSpanBytes()) {
+            spanBuffer.add(thriftSpan);
+            if (spanBytesSize < getMaxSpanBytes()) {
+                return 0;
+            }
+            return flush();
+        }
+
+        int n;
+        try {
+            n = flush();
+        } catch (SenderException e) {
+            // +1 for the span not submitted in the buffer above
+            throw new SenderException(e.getMessage(), e.getCause(), e.getDroppedSpanCount() + 1);
+        }
+
+        spanBuffer.add(thriftSpan);
+        spanBytesSize = spanSize;
+        return n;
     }
 
-    spanBytesSize += spanSize;
-    if (spanBytesSize <= getMaxSpanBytes()) {
-      spanBuffer.add(thriftSpan);
-      if (spanBytesSize < getMaxSpanBytes()) {
-        return 0;
-      }
-      return flush();
+    protected int calculateProcessSize(Process proc) throws SenderException {
+        try {
+            return getSize(proc);
+        } catch (Exception e) {
+            throw new SenderException("ThriftSender failed writing Process to memory buffer.", e, 1);
+        }
     }
 
-    int n;
-    try {
-      n = flush();
-    } catch (SenderException e) {
-      // +1 for the span not submitted in the buffer above
-      throw new SenderException(e.getMessage(), e.getCause(), e.getDroppedSpanCount() + 1);
+    protected int calculateSpanSize(io.jaegertracing.thriftjava.Span span) throws SenderException {
+        try {
+            return getSize(span);
+        } catch (Exception e) {
+            throw new SenderException("ThriftSender failed writing Span to memory buffer.", e, 1);
+        }
     }
 
-    spanBuffer.add(thriftSpan);
-    spanBytesSize = spanSize;
-    return n;
-  }
-
-  protected int calculateProcessSize(Process proc) throws SenderException {
-    try {
-      return getSize(proc);
-    } catch (Exception e) {
-      throw new SenderException("ThriftSender failed writing Process to memory buffer.", e, 1);
-    }
-  }
-
-  protected int calculateSpanSize(io.jaegertracing.thriftjava.Span span) throws SenderException {
-    try {
-      return getSize(span);
-    } catch (Exception e) {
-      throw new SenderException("ThriftSender failed writing Span to memory buffer.", e, 1);
-    }
-  }
-
-  protected int getMaxSpanBytes() {
-    return getMaxBatchBytes() - processBytesSize;
-  }
-
-  public abstract void send(Process process, List<io.jaegertracing.thriftjava.Span> spans) throws SenderException;
-
-  @Override
-  public int flush() throws SenderException {
-    if (spanBuffer.isEmpty()) {
-      return 0;
+    protected int getMaxSpanBytes() {
+        return getMaxBatchBytes() - processBytesSize;
     }
 
-    int n = spanBuffer.size();
-    try {
-      send(process, spanBuffer);
-    } catch (SenderException e) {
-      throw new SenderException("Failed to flush spans.", e, n);
-    } finally {
-      spanBuffer.clear();
-      spanBytesSize = 0;
-    }
-    return n;
-  }
+    public abstract void send(Process process, List<io.jaegertracing.thriftjava.Span> spans) throws SenderException;
 
-  @Override
-  public int close() throws SenderException {
-    return flush();
-  }
+    @Override
+    public int flush() throws SenderException {
+        if (spanBuffer.isEmpty()) {
+            return 0;
+        }
+
+        int n = spanBuffer.size();
+        try {
+            send(process, spanBuffer);
+        } catch (SenderException e) {
+            throw new SenderException("Failed to flush spans.", e, n);
+        } finally {
+            spanBuffer.clear();
+            spanBytesSize = 0;
+        }
+        return n;
+    }
+
+    @Override
+    public int close() throws SenderException {
+        return flush();
+    }
 
 }
