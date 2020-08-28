@@ -61,7 +61,7 @@ public class HttpSender extends ThriftSender {
             throw new SenderException(String.format("Failed to serialize %d spans", spans.size()), e, spans.size());
         }
 
-        RequestBody body = RequestBody.create(MEDIA_TYPE_THRIFT, bytes);
+        RequestBody body = RequestBody.create(bytes, MEDIA_TYPE_THRIFT);
         Request request = requestBuilder.post(body).build();
         Response response;
         try {
