@@ -29,6 +29,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 @ToString
 public class HttpSender extends ThriftSender {
@@ -53,7 +54,7 @@ public class HttpSender extends ThriftSender {
     @Override
     public void send(Process process, List<Span> spans) throws SenderException {
         Batch batch = new Batch(process, spans);
-        byte[] bytes = null;
+        byte[] bytes;
         try {
             bytes = serialize(batch);
         } catch (Exception e) {
@@ -74,15 +75,16 @@ public class HttpSender extends ThriftSender {
             return;
         }
 
-        String responseBody;
+        String responseBodyString;
         try {
-            responseBody = response.body() != null ? response.body().string() : "null";
+            ResponseBody responseBody = response.body();
+            responseBodyString = responseBody != null ? responseBody.string() : "null";
         } catch (IOException e) {
-            responseBody = "unable to read response";
+            responseBodyString = "unable to read response";
         }
 
         String exceptionMessage = String.format("Could not send %d spans, response %d: %s",
-                                                spans.size(), response.code(), responseBody);
+                                                spans.size(), response.code(), responseBodyString);
         throw new SenderException(exceptionMessage, null, spans.size());
     }
 
@@ -127,17 +129,12 @@ public class HttpSender extends ThriftSender {
         }
 
         private Interceptor getAuthInterceptor(final String headerValue) {
-            return new Interceptor() {
-                @Override
-                public Response intercept(Chain chain) throws IOException {
-                    return chain.proceed(
-                            chain.request()
-                                 .newBuilder()
-                                 .addHeader("Authorization", headerValue)
-                                 .build()
-                    );
-                }
-            };
+            return chain -> chain.proceed(
+                    chain.request()
+                         .newBuilder()
+                         .addHeader("Authorization", headerValue)
+                         .build()
+            );
         }
     }
 }

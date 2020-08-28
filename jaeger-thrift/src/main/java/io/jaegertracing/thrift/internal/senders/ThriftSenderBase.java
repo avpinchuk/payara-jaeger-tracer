@@ -39,7 +39,7 @@ public abstract class ThriftSenderBase {
     private final TSerializer serializer;
     private final int maxBatchBytes;
 
-    @ToString.Exclude private AutoExpandingBufferWriteTransport memoryTransport;
+    @ToString.Exclude private final AutoExpandingBufferWriteTransport memoryTransport;
 
     /**
      * @param protocolType protocol type (compact or binary)

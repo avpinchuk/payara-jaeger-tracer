@@ -14,17 +14,17 @@
 
 package io.jaegertracing.thrift.internal.reporters.protocols;
 
+import lombok.ToString;
+import org.apache.thrift.transport.TTransport;
+import org.apache.thrift.transport.TTransportException;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
-import lombok.ToString;
-import org.apache.thrift.transport.TTransport;
-import org.apache.thrift.transport.TTransportException;
 
 /*
  * A thrift transport for sending sending/receiving spans.
@@ -54,7 +54,7 @@ public class ThriftUdpTransport extends TTransport implements Closeable {
 
     // Create a UDP server for receiving data on specific host and port
     public static ThriftUdpTransport newThriftUdpServer(String host, int port)
-            throws SocketException, UnknownHostException {
+            throws SocketException {
         ThriftUdpTransport t = new ThriftUdpTransport();
         t.socket.bind(new InetSocketAddress(host, port));
         return t;
@@ -75,7 +75,7 @@ public class ThriftUdpTransport extends TTransport implements Closeable {
 
     // noop as opened in constructor
     @Override
-    public void open() throws TTransportException {}
+    public void open() {}
 
     // close underlying socket
     @Override

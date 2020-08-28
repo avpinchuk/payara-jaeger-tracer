@@ -31,7 +31,7 @@ public abstract class ThriftSender extends ThriftSenderBase implements Sender {
     private int processBytesSize;
     private int spanBytesSize;
 
-    @ToString.Exclude private List<io.jaegertracing.thriftjava.Span> spanBuffer;
+    @ToString.Exclude private final List<io.jaegertracing.thriftjava.Span> spanBuffer;
 
     /**
      * @param protocolType protocol type (compact or binary)
@@ -40,7 +40,7 @@ public abstract class ThriftSender extends ThriftSenderBase implements Sender {
     public ThriftSender(ProtocolType protocolType, int maxPacketSize) {
         super(protocolType, maxPacketSize);
 
-        spanBuffer = new ArrayList<io.jaegertracing.thriftjava.Span>();
+        spanBuffer = new ArrayList<>();
     }
 
     @Override

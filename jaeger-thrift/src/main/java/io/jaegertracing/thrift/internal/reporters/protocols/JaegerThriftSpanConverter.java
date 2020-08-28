@@ -40,7 +40,7 @@ public class JaegerThriftSpanConverter {
                                    && References.CHILD_OF.equals(jaegerSpan.getReferences().get(0).getType());
 
         List<SpanRef> references = oneChildOfParent
-                                   ? Collections.<SpanRef>emptyList()
+                                   ? Collections.emptyList()
                                    : buildReferences(jaegerSpan.getReferences());
 
         return new io.jaegertracing.thriftjava.Span(
@@ -59,7 +59,7 @@ public class JaegerThriftSpanConverter {
     }
 
     static List<SpanRef> buildReferences(List<Reference> references) {
-        List<SpanRef> thriftReferences = new ArrayList<SpanRef>(references.size());
+        List<SpanRef> thriftReferences = new ArrayList<>(references.size());
         for (Reference reference: references) {
             SpanRefType thriftRefType = References.CHILD_OF.equals(reference.getType()) ? SpanRefType.CHILD_OF :
                                         SpanRefType.FOLLOWS_FROM;
@@ -71,7 +71,7 @@ public class JaegerThriftSpanConverter {
     }
 
     static List<Log> buildLogs(List<LogData> logs) {
-        List<Log> thriftLogs = new ArrayList<Log>();
+        List<Log> thriftLogs = new ArrayList<>();
         if (logs != null) {
             for (LogData logData : logs) {
                 Log thriftLog = new Log();
@@ -79,7 +79,7 @@ public class JaegerThriftSpanConverter {
                 if (logData.getFields() != null) {
                     thriftLog.setFields(buildTags(logData.getFields()));
                 } else {
-                    List<Tag> tags = new ArrayList<Tag>();
+                    List<Tag> tags = new ArrayList<>();
                     if (logData.getMessage() != null) {
                         tags.add(buildTag("event", logData.getMessage()));
                     }
@@ -92,7 +92,7 @@ public class JaegerThriftSpanConverter {
     }
 
     public static List<Tag> buildTags(Map<String, ?> tags) {
-        List<Tag> thriftTags = new ArrayList<Tag>();
+        List<Tag> thriftTags = new ArrayList<>();
         if (tags != null) {
             for (Map.Entry<String, ?> entry : tags.entrySet()) {
                 String tagKey = entry.getKey();
