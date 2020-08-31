@@ -14,11 +14,10 @@
 
 package io.jaegertracing.thrift.internal.reporters.protocols;
 
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import org.apache.thrift.transport.TServerTransport;
 import org.apache.thrift.transport.TTransport;
-import org.apache.thrift.transport.TTransportException;
+
+import java.net.SocketException;
 
 public class ThriftUdpServerTransport extends TServerTransport {
     private final ThriftUdpTransport transport;

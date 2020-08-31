@@ -735,6 +735,7 @@ public class Configuration {
         return null;
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static Number getPropertyAsNum(String name) {
         String value = getProperty(name);
         if (value != null) {

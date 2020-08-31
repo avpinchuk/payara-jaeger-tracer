@@ -88,6 +88,7 @@ public class HttpSender extends ThriftSender {
         throw new SenderException(exceptionMessage, null, spans.size());
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public static class Builder {
         private final String endpoint;
         private int maxPacketSize = ONE_MB_IN_BYTES;

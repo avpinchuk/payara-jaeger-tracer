@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @ToString
+@SuppressWarnings("SameParameterValue")
 public class ThriftSenderFactory implements SenderFactory {
     @Override
     public Sender getSender(Configuration.SenderConfiguration conf) {

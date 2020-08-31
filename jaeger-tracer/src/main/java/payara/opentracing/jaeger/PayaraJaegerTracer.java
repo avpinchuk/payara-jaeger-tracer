@@ -26,8 +26,6 @@ public class PayaraJaegerTracer implements Tracer {
 
     private static final String MP_OPENTRACING_JAEGER_PREFIX = "mp.opentracing.jaeger.";
 
-    private static final String DEFAULT_SAMPLER_TYPE = "const";
-
     private final Config mpConfig;
 
     private volatile Tracer tracerDelegate;
@@ -184,13 +182,14 @@ public class PayaraJaegerTracer implements Tracer {
     }
 
     /**
-     * ${systemProperty:defaultValue}
-     * @param tagValue
-     * @return
+     * Returns resolved system property if exists, default value otherwise.
+     * Format: ${systemProperty:defaultValue}
+     * @param tagExpr a tag expression
+     * @return resolved tag value
      */
-    private String resolveTagValue(String tagValue) {
-        if (tagValue.startsWith("${") && tagValue.endsWith("}")) {
-            String[] tag = tagValue.substring(2, tagValue.length() - 1).split("\\s*:\\s*");
+    private String resolveTagValue(String tagExpr) {
+        if (tagExpr.startsWith("${") && tagExpr.endsWith("}")) {
+            String[] tag = tagExpr.substring(2, tagExpr.length() - 1).split("\\s*:\\s*");
             if (tag.length > 0) {
                 String value = getProperty(tag[0], String.class);
                 if (value == null && tag.length > 1) {
@@ -199,7 +198,7 @@ public class PayaraJaegerTracer implements Tracer {
                 return value;
             }
         }
-        return tagValue;
+        return tagExpr;
     }
 
 }

@@ -104,7 +104,7 @@ final class HexCodec {
      * Inspired by {@code okio.Buffer.writeLong}
      */
     static void writeHexLong(char[] data, int pos, long v) {
-        writeHexByte(data, pos + 0, (byte) ((v >>> 56L) & 0xff));
+        writeHexByte(data, pos, (byte) ((v >>> 56L) & 0xff));
         writeHexByte(data, pos + 2, (byte) ((v >>> 48L) & 0xff));
         writeHexByte(data, pos + 4, (byte) ((v >>> 40L) & 0xff));
         writeHexByte(data, pos + 6, (byte) ((v >>> 32L) & 0xff));
@@ -118,7 +118,7 @@ final class HexCodec {
             {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
     static void writeHexByte(char[] data, int pos, byte b) {
-        data[pos + 0] = HEX_DIGITS[(b >> 4) & 0xf];
+        data[pos] = HEX_DIGITS[(b >> 4) & 0xf];
         data[pos + 1] = HEX_DIGITS[b & 0xf];
     }
 
