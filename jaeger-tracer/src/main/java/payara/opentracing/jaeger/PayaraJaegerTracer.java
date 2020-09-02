@@ -116,7 +116,6 @@ public class PayaraJaegerTracer implements Tracer {
                             .withCodec(codecConfig);
 
             tracerDelegate = jaegerConfig.getTracer();
-            GlobalTracer.register(tracerDelegate);
         }
     }
 
