@@ -21,8 +21,6 @@ import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.propagation.Format;
-
-import io.opentracing.util.GlobalTracer;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.glassfish.api.invocation.InvocationManager;
