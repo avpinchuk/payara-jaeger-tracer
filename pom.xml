@@ -21,7 +21,7 @@
         <okhttp.version>4.2.2</okhttp.version>
         <okio.version>2.2.2</okio.version>
         <microprofile.config.version>1.4</microprofile.config.version>
-        <payara.version>5.182</payara.version>
+        <payara.version>5.194</payara.version>
         <junit.version>4.13</junit.version>
         <mockito.version>2.12.0</mockito.version>
         <jersey.version>2.22.2</jersey.version>
@@ -158,6 +158,14 @@
     </dependencyManagement>
 
     <dependencies>
+        <dependency>
+            <groupId>io.opentracing</groupId>
+            <artifactId>opentracing-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentracing</groupId>
+            <artifactId>opentracing-util</artifactId>
+        </dependency>
         <!-- Test dependencies -->
         <dependency>
             <groupId>junit</groupId>
