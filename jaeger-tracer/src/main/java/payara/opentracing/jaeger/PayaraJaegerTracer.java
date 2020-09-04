@@ -57,21 +57,10 @@ public class PayaraJaegerTracer implements Tracer {
                 /* Try to get application(module) name */
                 serviceName = Globals.get(OpenTracingService.class).getApplicationName(Globals.get(InvocationManager.class));
             }
-            
-            if (serviceName == null) {
-                throw new IllegalArgumentException("Jaeger service name cannot be null");
-            }
 
-            /*
-             * Because system property JAEGER_SENDER_FACTORY read via System.getProperty() we
-             * set they if not defined
-             */
-            if (System.getProperty(Configuration.JAEGER_SENDER_FACTORY) == null) {
-                String senderFactory = getProperty(Configuration.JAEGER_SENDER_FACTORY, String.class);
-                if (senderFactory != null) {
-                    System.setProperty(Configuration.JAEGER_SENDER_FACTORY, senderFactory);
-                }
-            }
+            Configuration.SenderFactoryConfiguration senderFactoryConfig =
+                    new Configuration.SenderFactoryConfiguration()
+                            .withType(getProperty(Configuration.JAEGER_SENDER_FACTORY, String.class));
 
             Configuration.SenderConfiguration senderConfig =
                     new Configuration.SenderConfiguration()
@@ -80,7 +69,8 @@ public class PayaraJaegerTracer implements Tracer {
                             .withEndpoint(getProperty(Configuration.JAEGER_ENDPOINT, String.class))
                             .withAuthToken(getProperty(Configuration.JAEGER_AUTH_TOKEN, String.class))
                             .withAuthUsername(getProperty(Configuration.JAEGER_USER, String.class))
-                            .withAuthPassword(getProperty(Configuration.JAEGER_PASSWORD, String.class));
+                            .withAuthPassword(getProperty(Configuration.JAEGER_PASSWORD, String.class))
+                            .fromSenderFactory(senderFactoryConfig);
 
             Configuration.ReporterConfiguration reporterConfig =
                     new Configuration.ReporterConfiguration()

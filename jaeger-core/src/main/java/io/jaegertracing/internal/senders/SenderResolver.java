@@ -60,7 +60,7 @@ public class SenderResolver {
             return new NoopSender();
         }
 
-        String requestedFactory = System.getProperty(Configuration.JAEGER_SENDER_FACTORY);
+        String requestedFactory = senderConfiguration.getSenderFactoryConfiguration().getType();
         boolean hasMultipleFactories = false;
         boolean isRequestedFactoryAvailable = false;
 

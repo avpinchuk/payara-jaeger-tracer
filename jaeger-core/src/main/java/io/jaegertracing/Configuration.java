@@ -612,6 +612,29 @@ public class Configuration {
     }
 
     /**
+     * Holds the configuration related to the sender factory.
+     */
+    @Getter
+    public static class SenderFactoryConfiguration {
+        /**
+         * Sender factory type
+          */
+        private String type;
+
+        public SenderFactoryConfiguration() { }
+
+        public SenderFactoryConfiguration withType(String type) {
+            this.type = type;
+            return this;
+        }
+
+        public static SenderFactoryConfiguration fromEnv() {
+            return new SenderFactoryConfiguration().withType(getProperty(JAEGER_SENDER_FACTORY));
+        }
+
+    }
+
+    /**
      * Holds the configuration related to the sender. A sender is resolved using a {@link SenderResolver}.
      *
      */
@@ -647,6 +670,8 @@ public class Configuration {
          */
         private String authPassword;
 
+        private SenderFactoryConfiguration senderFactoryConfiguration = new SenderFactoryConfiguration();
+
         public SenderConfiguration() {
         }
 
@@ -680,6 +705,11 @@ public class Configuration {
             return this;
         }
 
+        public SenderConfiguration fromSenderFactory(SenderFactoryConfiguration senderFactoryConfiguration) {
+            this.senderFactoryConfiguration = senderFactoryConfiguration;
+            return this;
+        }
+
         /**
          * Returns a sender based on the configuration's state.
          * @return the sender passed via the constructor or a properly configured sender
@@ -707,7 +737,8 @@ public class Configuration {
                     .withEndpoint(collectorEndpoint)
                     .withAuthToken(authToken)
                     .withAuthUsername(authUsername)
-                    .withAuthPassword(authPassword);
+                    .withAuthPassword(authPassword)
+                    .fromSenderFactory(SenderFactoryConfiguration.fromEnv());
         }
     }
 
