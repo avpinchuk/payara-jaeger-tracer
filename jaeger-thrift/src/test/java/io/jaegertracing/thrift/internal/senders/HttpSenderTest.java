@@ -17,7 +17,7 @@ package io.jaegertracing.thrift.internal.senders;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import io.jaegertracing.Configuration;
+import io.jaegertracing.config.Configuration;
 import io.jaegertracing.internal.exceptions.SenderException;
 import io.jaegertracing.thriftjava.Process;
 import io.jaegertracing.thriftjava.Span;

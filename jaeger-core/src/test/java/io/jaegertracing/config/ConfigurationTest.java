@@ -12,19 +12,13 @@
  * the License.
  */
 
-package io.jaegertracing;
+package io.jaegertracing.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import io.jaegertracing.Configuration.CodecConfiguration;
-import io.jaegertracing.Configuration.Propagation;
-import io.jaegertracing.Configuration.ReporterConfiguration;
-import io.jaegertracing.Configuration.SamplerConfiguration;
-import io.jaegertracing.Configuration.SenderConfiguration;
+import io.jaegertracing.config.Configuration.CodecConfiguration;
+import io.jaegertracing.config.Configuration.Propagation;
+import io.jaegertracing.config.Configuration.ReporterConfiguration;
+import io.jaegertracing.config.Configuration.SamplerConfiguration;
+import io.jaegertracing.config.Configuration.SenderConfiguration;
 import io.jaegertracing.internal.JaegerSpanContext;
 import io.jaegertracing.internal.JaegerTracer;
 import io.jaegertracing.internal.metrics.InMemoryMetricsFactory;
@@ -42,6 +36,11 @@ import io.jaegertracing.spi.Sampler;
 import io.opentracing.propagation.Format;
 import io.opentracing.propagation.Format.Builtin;
 import io.opentracing.propagation.TextMap;
+import io.opentracing.propagation.TextMapExtractAdapter;
+import io.opentracing.propagation.TextMapInjectAdapter;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -49,11 +48,12 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import io.opentracing.propagation.TextMapExtractAdapter;
-import io.opentracing.propagation.TextMapInjectAdapter;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 public class ConfigurationTest {
 
@@ -85,8 +85,7 @@ public class ConfigurationTest {
 
     @Test
     public void testFromEnv() {
-        System.setProperty(Configuration.JAEGER_SERVICE_NAME, "Test");
-        assertNotNull(Configuration.fromEnv().getTracer());
+        assertNotNull(Configuration.fromEnv("Test").getTracer());
     }
 
     @Test
@@ -103,24 +102,24 @@ public class ConfigurationTest {
     }
 
     @Test
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     public void testSamplerConst() {
         System.setProperty(Configuration.JAEGER_SAMPLER_TYPE, ConstSampler.TYPE);
         System.setProperty(Configuration.JAEGER_SAMPLER_PARAM, "1");
         SamplerConfiguration samplerConfig = SamplerConfiguration.fromEnv();
-        assertEquals(ConstSampler.TYPE, samplerConfig.getType());
-        assertEquals(1, samplerConfig.getParam().intValue());
+        assertEquals(ConstSampler.TYPE, samplerConfig.getType().get());
+        assertEquals(1, samplerConfig.getParam().get().intValue());
     }
 
     @Test
     public void testSamplerConstInvalidParam() {
         System.setProperty(Configuration.JAEGER_SAMPLER_TYPE, ConstSampler.TYPE);
         System.setProperty(Configuration.JAEGER_SAMPLER_PARAM, "X");
-        SamplerConfiguration samplerConfig = SamplerConfiguration.fromEnv();
-        assertEquals(ConstSampler.TYPE, samplerConfig.getType());
-        assertNull(samplerConfig.getParam());
+        assertThrows(IllegalArgumentException.class, SamplerConfiguration::fromEnv);
     }
 
     @Test
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     public void testReporterConfiguration() {
         System.setProperty(Configuration.JAEGER_REPORTER_LOG_SPANS, "true");
         System.setProperty(Configuration.JAEGER_AGENT_HOST, "MyHost");
@@ -128,85 +127,82 @@ public class ConfigurationTest {
         System.setProperty(Configuration.JAEGER_REPORTER_FLUSH_INTERVAL, "500");
         System.setProperty(Configuration.JAEGER_REPORTER_MAX_QUEUE_SIZE, "1000");
         ReporterConfiguration reporterConfig = ReporterConfiguration.fromEnv();
-        assertTrue(reporterConfig.getLogSpans());
-        assertEquals("MyHost", reporterConfig.getSenderConfiguration().getAgentHost());
-        assertEquals(1234, reporterConfig.getSenderConfiguration().getAgentPort().intValue());
-        assertEquals(500, reporterConfig.getFlushIntervalMs().intValue());
-        assertEquals(1000, reporterConfig.getMaxQueueSize().intValue());
+        assertTrue(reporterConfig.getLogSpans().get());
+        assertEquals("MyHost", reporterConfig.getSenderConfiguration().getAgentHost().get());
+        assertEquals(1234, reporterConfig.getSenderConfiguration().getAgentPort().get().intValue());
+        assertEquals(500, reporterConfig.getFlushIntervalMs().get().intValue());
+        assertEquals(1000, reporterConfig.getMaxQueueSize().get().intValue());
     }
 
     @Test
     public void testReporterConfigurationInvalidFlushInterval() {
         System.setProperty(Configuration.JAEGER_REPORTER_FLUSH_INTERVAL, "X");
-        ReporterConfiguration reporterConfig = ReporterConfiguration.fromEnv();
-        assertNull(reporterConfig.getFlushIntervalMs());
+        assertThrows(IllegalArgumentException.class, ReporterConfiguration::fromEnv);
     }
 
     @Test
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     public void testReporterConfigurationInvalidLogSpans() {
         System.setProperty(Configuration.JAEGER_REPORTER_LOG_SPANS, "X");
         ReporterConfiguration reporterConfig = ReporterConfiguration.fromEnv();
-        assertFalse(reporterConfig.getLogSpans());
+        assertFalse(reporterConfig.getLogSpans().get());
     }
 
     @Test
     public void testTracerUse128BitTraceId() {
-        System.setProperty(Configuration.JAEGER_SERVICE_NAME, "Test");
         System.setProperty(Configuration.JAEGER_TRACEID_128BIT, "true");
-        JaegerTracer tracer = Configuration.fromEnv().getTracer();
+        JaegerTracer tracer = Configuration.fromEnv("Test").getTracer();
         assertTrue(tracer.isUseTraceId128Bit());
     }
 
     @Test
     public void testTracerInvalidUse128BitTraceId() {
-        System.setProperty(Configuration.JAEGER_SERVICE_NAME, "Test");
         System.setProperty(Configuration.JAEGER_TRACEID_128BIT, "X");
-        JaegerTracer tracer = Configuration.fromEnv().getTracer();
+        JaegerTracer tracer = Configuration.fromEnv("Test").getTracer();
         assertFalse(tracer.isUseTraceId128Bit());
     }
 
     @Test
     public void testTracerTagsList() {
-        System.setProperty(Configuration.JAEGER_SERVICE_NAME, "Test");
         System.setProperty(Configuration.JAEGER_TAGS, "testTag1=testValue1, testTag2 = testValue2");
-        JaegerTracer tracer = Configuration.fromEnv().getTracer();
+        JaegerTracer tracer = Configuration.fromEnv("Test").getTracer();
         assertEquals("testValue1", tracer.tags().get("testTag1"));
         assertEquals("testValue2", tracer.tags().get("testTag2"));
     }
 
     @Test
     public void testTracerTagsListFormatError() {
-        System.setProperty(Configuration.JAEGER_SERVICE_NAME, "Test");
         System.setProperty(Configuration.JAEGER_TAGS, "testTag1, testTag2 = testValue2");
-        JaegerTracer tracer = Configuration.fromEnv().getTracer();
+        JaegerTracer tracer = Configuration.fromEnv("Test").getTracer();
         assertEquals("testValue2", tracer.tags().get("testTag2"));
     }
 
     @Test
     public void testTracerTagsSubstitutionDefault() {
-        System.setProperty(Configuration.JAEGER_SERVICE_NAME, "Test");
         System.setProperty(Configuration.JAEGER_TAGS, "testTag1=${" + TEST_PROPERTY + ":hello}");
-        JaegerTracer tracer = Configuration.fromEnv().getTracer();
+        JaegerTracer tracer = Configuration.fromEnv("Test").getTracer();
         assertEquals("hello", tracer.tags().get("testTag1"));
     }
 
     @Test
     public void testTracerTagsSubstitutionSpecified() {
-        System.setProperty(Configuration.JAEGER_SERVICE_NAME, "Test");
         System.setProperty(TEST_PROPERTY, "goodbye");
         System.setProperty(Configuration.JAEGER_TAGS, "testTag1=${" + TEST_PROPERTY + ":hello}");
-        JaegerTracer tracer = Configuration.fromEnv().getTracer();
+        JaegerTracer tracer = Configuration.fromEnv("Test").getTracer();
         assertEquals("goodbye", tracer.tags().get("testTag1"));
     }
 
     @Test
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     public void testSenderBackwardsCompatibilityGettingAgentHostAndPort() {
         System.setProperty(Configuration.JAEGER_AGENT_HOST, "jaeger-agent");
         System.setProperty(Configuration.JAEGER_AGENT_PORT, "6832");
-        assertEquals("jaeger-agent", Configuration.ReporterConfiguration.fromEnv()
-                                                                        .getSenderConfiguration().getAgentHost());
-        assertEquals(Integer.valueOf(6832), Configuration.ReporterConfiguration.fromEnv()
-                                                                               .getSenderConfiguration().getAgentPort());
+        assertEquals("jaeger-agent",
+                     Configuration.ReporterConfiguration
+                             .fromEnv().getSenderConfiguration().getAgentHost().get());
+        assertEquals(6832,
+                     Configuration.ReporterConfiguration
+                             .fromEnv().getSenderConfiguration().getAgentPort().get().intValue());
     }
 
     @Test
@@ -218,7 +214,6 @@ public class ConfigurationTest {
     @Test
     public void testPropagationB3Only() {
         System.setProperty(Configuration.JAEGER_PROPAGATION, "b3");
-        System.setProperty(Configuration.JAEGER_SERVICE_NAME, "Test");
 
         long traceIdLow = 1234L;
         long spanId = 5678L;
@@ -226,7 +221,7 @@ public class ConfigurationTest {
         TestTextMap textMap = new TestTextMap();
         JaegerSpanContext spanContext = new JaegerSpanContext(0, traceIdLow, spanId, 0, (byte)0);
 
-        JaegerTracer tracer = Configuration.fromEnv().getTracer();
+        JaegerTracer tracer = Configuration.fromEnv("Test").getTracer();
         tracer.inject(spanContext, Format.Builtin.TEXT_MAP, textMap);
 
         assertNotNull(textMap.get("X-B3-TraceId"));
@@ -242,7 +237,6 @@ public class ConfigurationTest {
     @Test
     public void testPropagationJaegerAndB3() {
         System.setProperty(Configuration.JAEGER_PROPAGATION, "jaeger,b3");
-        System.setProperty(Configuration.JAEGER_SERVICE_NAME, "Test");
 
         long traceIdLow = 1234L;
         long spanId = 5678L;
@@ -250,7 +244,7 @@ public class ConfigurationTest {
         TestTextMap textMap = new TestTextMap();
         JaegerSpanContext spanContext = new JaegerSpanContext(0, traceIdLow, spanId, 0, (byte)0);
 
-        JaegerTracer tracer = Configuration.fromEnv().getTracer();
+        JaegerTracer tracer = Configuration.fromEnv("Test").getTracer();
         tracer.inject(spanContext, Format.Builtin.TEXT_MAP, textMap);
 
         assertNotNull(textMap.get("uber-trace-id"));
@@ -266,7 +260,6 @@ public class ConfigurationTest {
     @Test
     public void testPropagationBinary() {
         System.setProperty(Configuration.JAEGER_PROPAGATION, "jaeger");
-        System.setProperty(Configuration.JAEGER_SERVICE_NAME, "Test");
 
         long traceIdLow = 1234L;
         long spanId = 5678L;
@@ -274,7 +267,7 @@ public class ConfigurationTest {
         JaegerSpanContext spanContext = new JaegerSpanContext(0, traceIdLow, spanId, 0, (byte)0);
         ByteBuffer carrier = ByteBuffer.allocate(spanContext.size());
 
-        JaegerTracer tracer = Configuration.fromEnv().getTracer();
+        JaegerTracer tracer = Configuration.fromEnv("Test").getTracer();
         tracer.inject(spanContext, Format.Builtin.BINARY, carrier);
         JaegerSpanContext extractedContext = tracer.extract(Format.Builtin.BINARY, carrier);
         assertEquals(traceIdLow, extractedContext.getTraceIdLow());
@@ -284,15 +277,13 @@ public class ConfigurationTest {
 
     @Test
     public void testPropagationDefault() {
-        System.setProperty(Configuration.JAEGER_SERVICE_NAME, "Test");
-
         long traceIdLow = 1234;
         long spanId = 5678;
 
         TestTextMap textMap = new TestTextMap();
         JaegerSpanContext spanContext = new JaegerSpanContext(0, traceIdLow, spanId, 0, (byte)0);
 
-        Configuration.fromEnv().getTracer().inject(spanContext, Format.Builtin.TEXT_MAP, textMap);
+        Configuration.fromEnv("Test").getTracer().inject(spanContext, Format.Builtin.TEXT_MAP, textMap);
 
         assertNotNull(textMap.get("uber-trace-id"));
         assertNull(textMap.get("X-B3-TraceId"));
@@ -302,7 +293,6 @@ public class ConfigurationTest {
     @Test
     public void testPropagationValidFormat() {
         System.setProperty(Configuration.JAEGER_PROPAGATION, "jaeger,invalid");
-        System.setProperty(Configuration.JAEGER_SERVICE_NAME, "Test");
 
         long traceIdLow = 1234;
         long spanId = 5678;
@@ -310,7 +300,7 @@ public class ConfigurationTest {
         TestTextMap textMap = new TestTextMap();
         JaegerSpanContext spanContext = new JaegerSpanContext(0, traceIdLow, spanId, 0, (byte)0);
 
-        Configuration.fromEnv().getTracer().inject(spanContext, Format.Builtin.TEXT_MAP, textMap);
+        Configuration.fromEnv("Test").getTracer().inject(spanContext, Format.Builtin.TEXT_MAP, textMap);
 
         // Check that jaeger context still available even though invalid format specified
         assertNotNull(textMap.get("uber-trace-id"));
@@ -328,8 +318,7 @@ public class ConfigurationTest {
 
     @Test
     public void testOverrideServiceName() {
-        System.setProperty(Configuration.JAEGER_SERVICE_NAME, "Test");
-        Configuration configuration = Configuration.fromEnv()
+        Configuration configuration = Configuration.fromEnv("Test")
                                                    .withServiceName("bar");
         assertEquals("bar", configuration.getServiceName());
     }
@@ -353,8 +342,7 @@ public class ConfigurationTest {
 
     @Test
     public void testConstSampler() {
-        SamplerConfiguration samplerConfiguration = new SamplerConfiguration()
-                .withType(ConstSampler.TYPE);
+        SamplerConfiguration samplerConfiguration = new SamplerConfiguration().withType(ConstSampler.TYPE);
         Sampler sampler = samplerConfiguration.createSampler("name",
                                                              new Metrics(new InMemoryMetricsFactory()));
         assertTrue(sampler instanceof ConstSampler);
@@ -362,8 +350,7 @@ public class ConfigurationTest {
 
     @Test
     public void testProbabilisticSampler() {
-        SamplerConfiguration samplerConfiguration = new SamplerConfiguration()
-                .withType(ProbabilisticSampler.TYPE);
+        SamplerConfiguration samplerConfiguration = new SamplerConfiguration().withType(ProbabilisticSampler.TYPE);
         Sampler sampler = samplerConfiguration.createSampler("name",
                                                              new Metrics(new InMemoryMetricsFactory()));
         assertTrue(sampler instanceof ProbabilisticSampler);
@@ -371,8 +358,7 @@ public class ConfigurationTest {
 
     @Test
     public void testRateLimitingSampler() {
-        SamplerConfiguration samplerConfiguration = new SamplerConfiguration()
-                .withType(RateLimitingSampler.TYPE);
+        SamplerConfiguration samplerConfiguration = new SamplerConfiguration().withType(RateLimitingSampler.TYPE);
         Sampler sampler = samplerConfiguration.createSampler("name",
                                                              new Metrics(new InMemoryMetricsFactory()));
         assertTrue(sampler instanceof RateLimitingSampler);
@@ -381,8 +367,7 @@ public class ConfigurationTest {
     @Test
     public void testMetrics() {
         InMemoryMetricsFactory inMemoryMetricsFactory = new InMemoryMetricsFactory();
-        Configuration configuration = new Configuration("foo")
-                .withMetricsFactory(inMemoryMetricsFactory);
+        Configuration configuration = new Configuration("foo").withMetricsFactory(inMemoryMetricsFactory);
         assertEquals(inMemoryMetricsFactory, configuration.getMetricsFactory());
     }
 
@@ -420,10 +405,11 @@ public class ConfigurationTest {
             public void inject(JaegerSpanContext spanContext, ByteBuffer carrier) {
             }
         };
-        CodecConfiguration codecConfiguration = new CodecConfiguration()
-                .withCodec(Builtin.HTTP_HEADERS, codec1)
-                .withCodec(Builtin.HTTP_HEADERS, codec2)
-                .withBinaryCodec(Builtin.BINARY, codec3);
+        CodecConfiguration codecConfiguration =
+                new CodecConfiguration()
+                        .withCodec(Builtin.HTTP_HEADERS, codec1)
+                        .withCodec(Builtin.HTTP_HEADERS, codec2)
+                        .withBinaryCodec(Builtin.BINARY, codec3);
         assertEquals(2, codecConfiguration.getCodecs().get(Builtin.HTTP_HEADERS).size());
         assertEquals(codec1, codecConfiguration.getCodecs().get(Builtin.HTTP_HEADERS).get(0));
         assertEquals(codec2, codecConfiguration.getCodecs().get(Builtin.HTTP_HEADERS).get(1));
@@ -468,8 +454,7 @@ public class ConfigurationTest {
     @Test
     public void testB3CodecsWith128BitTraceId() {
         System.setProperty(Configuration.JAEGER_PROPAGATION, "b3");
-        System.setProperty(Configuration.JAEGER_SERVICE_NAME, "Test");
-        Configuration configuration = Configuration.fromEnv().withTraceId128Bit(true);
+        Configuration configuration = Configuration.fromEnv("Test").withTraceId128Bit(true);
         long traceIdLow = 2L;
         long traceIdHigh = 3L;
         long spanId = 11L;
@@ -482,11 +467,11 @@ public class ConfigurationTest {
 
     @Test
     public void testCodecFromString() {
-        CodecConfiguration codecConfiguration = CodecConfiguration
-                .fromString(String.format("%s,%s,%s",
-                                          Propagation.B3.name(),
-                                          Propagation.JAEGER.name(),
-                                          Propagation.W3C.name()));
+        CodecConfiguration codecConfiguration =
+                CodecConfiguration.fromString(String.format("%s,%s,%s",
+                                                            Propagation.B3.name(),
+                                                            Propagation.JAEGER.name(),
+                                                            Propagation.W3C.name()));
         assertEquals(2, codecConfiguration.getCodecs().size());
         assertEquals(3, codecConfiguration.getCodecs().get(Builtin.HTTP_HEADERS).size());
         assertEquals(3, codecConfiguration.getCodecs().get(Builtin.TEXT_MAP).size());
@@ -502,8 +487,7 @@ public class ConfigurationTest {
 
     @Test
     public void testCodecWithPropagationJaeger() {
-        CodecConfiguration codecConfiguration = new CodecConfiguration()
-                .withPropagation(Propagation.JAEGER);
+        CodecConfiguration codecConfiguration = new CodecConfiguration().withPropagation(Propagation.JAEGER);
         assertEquals(2, codecConfiguration.getCodecs().size());
         assertEquals(1, codecConfiguration.getCodecs().get(Builtin.HTTP_HEADERS).size());
         assertEquals(1, codecConfiguration.getCodecs().get(Builtin.TEXT_MAP).size());
@@ -515,8 +499,7 @@ public class ConfigurationTest {
 
     @Test
     public void testCodecWithPropagationB3() {
-        CodecConfiguration codecConfiguration = new CodecConfiguration()
-                .withPropagation(Propagation.B3);
+        CodecConfiguration codecConfiguration = new CodecConfiguration().withPropagation(Propagation.B3);
         assertEquals(2, codecConfiguration.getCodecs().size());
         assertEquals(1, codecConfiguration.getCodecs().get(Builtin.HTTP_HEADERS).size());
         assertEquals(1, codecConfiguration.getCodecs().get(Builtin.TEXT_MAP).size());
@@ -525,7 +508,9 @@ public class ConfigurationTest {
     }
 
     @SuppressWarnings("unchecked")
-    private <C> void assertInjectExtract(JaegerTracer tracer, Format<C> format, JaegerSpanContext contextToInject,
+    private <C> void assertInjectExtract(JaegerTracer tracer,
+                                         Format<C> format,
+                                         JaegerSpanContext contextToInject,
                                          boolean injectMapIsEmpty) {
         HashMap<String, String> injectMap = new HashMap<>();
         tracer.inject(contextToInject, format, (C) new TextMapInjectAdapter(injectMap));
@@ -549,10 +534,8 @@ public class ConfigurationTest {
 
     @Test
     public void testMetricsFactoryFromServiceLoader() {
-        System.setProperty(Configuration.JAEGER_SERVICE_NAME, "Test");
-
         int instances = MockMetricsFactory.instances.size();
-        Configuration.fromEnv().getTracer();
+        Configuration.fromEnv("Test").getTracer();
         assertEquals(++instances, MockMetricsFactory.instances.size());
     }
 

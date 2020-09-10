@@ -14,10 +14,11 @@
 
 package io.jaegertracing.internal.senders;
 
-import io.jaegertracing.Configuration;
+import io.jaegertracing.config.Configuration;
 import io.jaegertracing.spi.Sender;
 import io.jaegertracing.spi.SenderFactory;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.ServiceLoader;
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,58 +51,60 @@ public class SenderResolver {
      * @return the resolved Sender, or NoopSender
      */
     public static Sender resolve(Configuration.SenderConfiguration senderConfiguration) {
-        Sender sender = null;
-        ServiceLoader<SenderFactory> senderFactoryServiceLoader = ServiceLoader.load(SenderFactory.class,
-                                                                                     SenderFactory.class.getClassLoader());
+        ServiceLoader<SenderFactory> senderFactoryServiceLoader =
+                ServiceLoader.load(SenderFactory.class, SenderFactory.class.getClassLoader());
         Iterator<SenderFactory> senderFactoryIterator = senderFactoryServiceLoader.iterator();
 
-        if (!senderFactoryIterator.hasNext()) {
-            log.warn("No sender factories available. Using NoopSender, meaning that data will not be sent anywhere!");
-            return new NoopSender();
-        }
-
-        String requestedFactory = senderConfiguration.getSenderFactoryConfiguration().getType();
-        boolean hasMultipleFactories = false;
-        boolean isRequestedFactoryAvailable = false;
-
+        int factoryCount = 0;
         while (senderFactoryIterator.hasNext()) {
-            SenderFactory senderFactory = senderFactoryIterator.next();
+            // Eagerly loads all factories as a side effect
+            senderFactoryIterator.next();
+            factoryCount++;
+        }
 
-            if (senderFactoryIterator.hasNext()) {
-                log.debug("There are multiple factories available via the service loader.");
-                hasMultipleFactories = true;
-            }
-
-            if (hasMultipleFactories) {
-                // we compare the factory name with JAEGER_SENDER_FACTORY, as a way to know which
-                // factory the user wants:
-                if (senderFactory.getType().equals(requestedFactory)) {
-                    log.debug(
-                            String.format("Found the requested (%s) sender factory: %s",
-                                          requestedFactory,
-                                          senderFactory)
-                    );
-                    isRequestedFactoryAvailable = true;
-                    sender = getSenderFromFactory(senderFactory, senderConfiguration);
-                }
+        Sender sender = null;
+        if (factoryCount > 0) {
+            // will use internally cached factory providers
+            senderFactoryIterator = senderFactoryServiceLoader.iterator();
+            if (factoryCount == 1) {
+                sender = getSenderFromFactory(senderFactoryIterator.next(), senderConfiguration);
             } else {
-                sender = getSenderFromFactory(senderFactory, senderConfiguration);
+                log.debug("There are multiple factories available via the service loader.");
+
+                Optional<String> requestedFactory = senderConfiguration.getSenderFactoryConfiguration().getType();
+
+                if (requestedFactory.isPresent()) {
+                    String requestedFactoryType = requestedFactory.get();
+
+                    while (senderFactoryIterator.hasNext()) {
+                        SenderFactory senderFactory = senderFactoryIterator.next();
+
+                        if (requestedFactoryType.equals(senderFactory.getType())) {
+                            log.debug(String.format("Found the requested (%s) sender factory: %s",
+                                                    requestedFactoryType,
+                                                    senderFactory));
+                            sender = getSenderFromFactory(senderFactory, senderConfiguration);
+                            break;
+                        }
+                    }
+
+                    if (sender == null) {
+                        log.warn(String.format("%s not available", requestedFactoryType));
+                    }
+                } else {
+                    log.warn("Multiple factories available but JAEGER_SENDER_FACTORY property not specified.");
+                }
             }
         }
 
-        if (null != sender) {
+        if (sender != null) {
             log.debug(String.format("Using sender %s", sender));
-            return sender;
-        } else if (requestedFactory == null && hasMultipleFactories) {
-            log.warn("Multiple factories available but JAEGER_SENDER_FACTORY property not specified.");
-        } else if (requestedFactory != null && hasMultipleFactories && !isRequestedFactoryAvailable) {
-            log.warn(
-                    String.format("%s not available, using NoopSender, hence data will not be sent anywhere!",requestedFactory)
-            );
         } else {
             log.warn("No suitable sender found. Using NoopSender, meaning that data will not be sent anywhere!");
+            sender = new NoopSender();
         }
-        return new NoopSender();
+
+        return sender;
     }
 
     private static Sender getSenderFromFactory(SenderFactory senderFactory,

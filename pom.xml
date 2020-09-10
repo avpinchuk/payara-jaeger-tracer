@@ -154,6 +154,12 @@
                 <version>${logback.version}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>io.smallrye.config</groupId>
+                <artifactId>smallrye-config</artifactId>
+                <version>1.8.6</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -165,6 +171,10 @@
         <dependency>
             <groupId>io.opentracing</groupId>
             <artifactId>opentracing-util</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.microprofile.config</groupId>
+            <artifactId>microprofile-config-api</artifactId>
         </dependency>
         <!-- Test dependencies -->
         <dependency>
@@ -190,6 +200,10 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.smallrye.config</groupId>
+            <artifactId>smallrye-config</artifactId>
         </dependency>
     </dependencies>
 

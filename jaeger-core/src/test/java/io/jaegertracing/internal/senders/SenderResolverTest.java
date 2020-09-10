@@ -18,7 +18,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import io.jaegertracing.Configuration;
+import io.jaegertracing.config.Configuration;
 import io.jaegertracing.internal.JaegerSpan;
 import io.jaegertracing.spi.Sender;
 import java.io.File;

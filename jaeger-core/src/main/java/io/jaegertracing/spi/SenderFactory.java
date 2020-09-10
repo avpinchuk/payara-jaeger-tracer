@@ -14,7 +14,7 @@
 
 package io.jaegertracing.spi;
 
-import io.jaegertracing.Configuration;
+import io.jaegertracing.config.Configuration;
 import io.jaegertracing.internal.senders.NoopSender;
 import io.jaegertracing.internal.senders.SenderResolver;
 

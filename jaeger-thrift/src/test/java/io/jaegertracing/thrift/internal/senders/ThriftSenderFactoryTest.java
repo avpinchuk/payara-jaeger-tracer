@@ -16,7 +16,7 @@ package io.jaegertracing.thrift.internal.senders;
 
 import static org.junit.Assert.assertTrue;
 
-import io.jaegertracing.Configuration;
+import io.jaegertracing.config.Configuration;
 import io.jaegertracing.spi.Sender;
 import org.junit.Before;
 import org.junit.Test;

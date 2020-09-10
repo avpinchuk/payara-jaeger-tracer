@@ -14,7 +14,7 @@
 
 package io.jaegertracing.internal;
 
-import io.jaegertracing.Configuration;
+import io.jaegertracing.config.Configuration;
 import io.opentracing.Scope;
 
 import io.opentracing.Span;

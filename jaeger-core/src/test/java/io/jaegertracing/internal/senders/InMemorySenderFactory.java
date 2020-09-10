@@ -14,7 +14,7 @@
 
 package io.jaegertracing.internal.senders;
 
-import io.jaegertracing.Configuration;
+import io.jaegertracing.config.Configuration;
 import io.jaegertracing.spi.Sender;
 import io.jaegertracing.spi.SenderFactory;
 
