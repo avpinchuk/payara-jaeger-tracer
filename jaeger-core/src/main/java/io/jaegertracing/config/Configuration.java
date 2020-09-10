@@ -13,7 +13,7 @@
  * the License.
  */
 
-package io.jaegertracing;
+package io.jaegertracing.config;
 
 import io.jaegertracing.internal.JaegerTracer;
 import io.jaegertracing.internal.metrics.Metrics;
@@ -40,19 +40,19 @@ import io.jaegertracing.spi.Sender;
 import io.jaegertracing.spi.SenderFactory;
 import io.opentracing.propagation.Format;
 import io.opentracing.propagation.TextMap;
+import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.config.ConfigProvider;
 
 import java.nio.ByteBuffer;
-import java.text.NumberFormat;
-import java.text.ParseException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ServiceLoader;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class is designed to provide {@link JaegerTracer} or {@link JaegerTracer.Builder} when Jaeger client
@@ -64,83 +64,83 @@ public class Configuration {
     /**
      * Prefix for all properties used to configure the Jaeger tracer.
      */
-    public static final String JAEGER_PREFIX = "JAEGER_";
+    public static final String JAEGER_PREFIX = "mp.opentracing.jaeger.";
 
     /**
      * The full URL to the {@code traces} endpoint, like https://jaeger-collector:14268/api/traces
      */
-    public static final String JAEGER_ENDPOINT = JAEGER_PREFIX + "ENDPOINT";
+    public static final String JAEGER_ENDPOINT = JAEGER_PREFIX + "endpoint";
 
     /**
      * The Auth Token to be added as "Bearer" on Authorization headers for requests sent to the endpoint
      */
-    public static final String JAEGER_AUTH_TOKEN = JAEGER_PREFIX + "AUTH_TOKEN";
+    public static final String JAEGER_AUTH_TOKEN = JAEGER_PREFIX + "auth-token";
 
     /**
      * The Basic Auth username to be added on Authorization headers for requests sent to the endpoint
      */
-    public static final String JAEGER_USER = JAEGER_PREFIX + "USER";
+    public static final String JAEGER_USER = JAEGER_PREFIX + "user";
 
     /**
      * The Basic Auth password to be added on Authorization headers for requests sent to the endpoint
      */
-    public static final String JAEGER_PASSWORD = JAEGER_PREFIX + "PASSWORD";
+    public static final String JAEGER_PASSWORD = JAEGER_PREFIX + "password";
 
     /**
      * The host name used to locate the agent.
      */
-    public static final String JAEGER_AGENT_HOST = JAEGER_PREFIX + "AGENT_HOST";
+    public static final String JAEGER_AGENT_HOST = JAEGER_PREFIX + "agent-host";
 
     /**
      * The port used to locate the agent.
      */
-    public static final String JAEGER_AGENT_PORT = JAEGER_PREFIX + "AGENT_PORT";
+    public static final String JAEGER_AGENT_PORT = JAEGER_PREFIX + "agent-port";
 
     /**
      * Whether the reporter should log the spans.
      */
-    public static final String JAEGER_REPORTER_LOG_SPANS = JAEGER_PREFIX + "REPORTER_LOG_SPANS";
+    public static final String JAEGER_REPORTER_LOG_SPANS = JAEGER_PREFIX + "reporter-log-spans";
 
     /**
      * The maximum queue size for use when reporting spans remotely.
      */
-    public static final String JAEGER_REPORTER_MAX_QUEUE_SIZE = JAEGER_PREFIX + "REPORTER_MAX_QUEUE_SIZE";
+    public static final String JAEGER_REPORTER_MAX_QUEUE_SIZE = JAEGER_PREFIX + "reporter-max-queue-size";
 
     /**
      * The flush interval when reporting spans remotely.
      */
-    public static final String JAEGER_REPORTER_FLUSH_INTERVAL = JAEGER_PREFIX + "REPORTER_FLUSH_INTERVAL";
+    public static final String JAEGER_REPORTER_FLUSH_INTERVAL = JAEGER_PREFIX + "reporter-flush-interval";
 
     /**
      * The sampler type.
      */
-    public static final String JAEGER_SAMPLER_TYPE = JAEGER_PREFIX + "SAMPLER_TYPE";
+    public static final String JAEGER_SAMPLER_TYPE = JAEGER_PREFIX + "sampler-type";
 
     /**
      * The sampler parameter (number).
      */
-    public static final String JAEGER_SAMPLER_PARAM = "JAEGER_SAMPLER_PARAM";
+    public static final String JAEGER_SAMPLER_PARAM = JAEGER_PREFIX + "sampler-param";
 
     /**
      * The sampler manager host:port.
      */
-    public static final String JAEGER_SAMPLER_MANAGER_HOST_PORT = JAEGER_PREFIX + "SAMPLER_MANAGER_HOST_PORT";
+    public static final String JAEGER_SAMPLER_MANAGER_HOST_PORT = JAEGER_PREFIX + "sampler-manager-host-port";
 
     /**
      * The service name.
      */
-    public static final String JAEGER_SERVICE_NAME = JAEGER_PREFIX + "SERVICE_NAME";
+    public static final String JAEGER_SERVICE_NAME = JAEGER_PREFIX + "service-name";
 
     /**
      * The tracer level tags.
      */
-    public static final String JAEGER_TAGS = JAEGER_PREFIX + "TAGS";
+    public static final String JAEGER_TAGS = JAEGER_PREFIX + "tags";
 
     /**
      * Comma separated list of formats to use for propagating the trace context. Default will the
      * standard Jaeger format. Valid values are jaeger and b3.
      */
-    public static final String JAEGER_PROPAGATION = JAEGER_PREFIX + "PROPAGATION";
+    public static final String JAEGER_PROPAGATION = JAEGER_PREFIX + "propagation";
 
     /**
      * When there are multiple service providers for the {@link SenderFactory} available,
@@ -148,12 +148,12 @@ public class Configuration {
      * {@link SenderFactory#getType()}.
      *
      */
-    public static final String JAEGER_SENDER_FACTORY = JAEGER_PREFIX + "SENDER_FACTORY";
+    public static final String JAEGER_SENDER_FACTORY = JAEGER_PREFIX + "sender-factory";
 
     /**
      *  Opt-in to use 128 bit traceIds. By default, uses 64 bits.
      */
-    public static final String JAEGER_TRACEID_128BIT = JAEGER_PREFIX + "TRACEID_128BIT";
+    public static final String JAEGER_TRACEID_128BIT = JAEGER_PREFIX + "traceid-128bit";
 
     /**
      * The supported trace context propagation formats.
@@ -196,18 +196,10 @@ public class Configuration {
         this.serviceName = JaegerTracer.Builder.checkValidServiceName(serviceName);
     }
 
-
-    /**
-     * @return Configuration object from environmental variables
-     */
-    public static Configuration fromEnv() {
-        return Configuration.fromEnv(getProperty(JAEGER_SERVICE_NAME));
-    }
-
     public static Configuration fromEnv(String serviceName) {
         return new Configuration(serviceName)
                 .withTracerTags(tracerTagsFromEnv())
-                .withTraceId128Bit(getPropertyAsBool(JAEGER_TRACEID_128BIT))
+                .withTraceId128Bit(getProperty(JAEGER_TRACEID_128BIT, Boolean.class).orElse(Boolean.FALSE))
                 .withReporter(ReporterConfiguration.fromEnv())
                 .withSampler(SamplerConfiguration.fromEnv())
                 .withCodec(CodecConfiguration.fromEnv());
@@ -336,7 +328,9 @@ public class Configuration {
     }
 
     public Map<String, String> getTracerTags() {
-        return tracerTags == null ? null : Collections.unmodifiableMap(tracerTags);
+        return tracerTags == null
+               ? Collections.emptyMap()
+               : Collections.unmodifiableMap(tracerTags);
     }
 
     /**
@@ -360,21 +354,20 @@ public class Configuration {
          */
         private String managerHostPort;
 
-        public SamplerConfiguration() {
-        }
+        public SamplerConfiguration() { }
 
         public static SamplerConfiguration fromEnv() {
             return new SamplerConfiguration()
-                    .withType(getProperty(JAEGER_SAMPLER_TYPE))
-                    .withParam(getPropertyAsNum(JAEGER_SAMPLER_PARAM))
-                    .withManagerHostPort(getProperty(JAEGER_SAMPLER_MANAGER_HOST_PORT));
+                    .withType(getProperty(JAEGER_SAMPLER_TYPE, String.class).orElse(null))
+                    .withParam(getProperty(JAEGER_SAMPLER_PARAM, Number.class).orElse(null))
+                    .withManagerHostPort(getProperty(JAEGER_SAMPLER_MANAGER_HOST_PORT, String.class).orElse(null));
         }
 
         // for tests
         Sampler createSampler(String serviceName, Metrics metrics) {
-            String samplerType = stringOrDefault(this.getType(), RemoteControlledSampler.TYPE);
-            Number samplerParam = numberOrDefault(this.getParam(), ProbabilisticSampler.DEFAULT_SAMPLING_PROBABILITY);
-            String hostPort = stringOrDefault(this.getManagerHostPort(), HttpSamplingManager.DEFAULT_HOST_PORT);
+            String samplerType = this.getType().orElse(RemoteControlledSampler.TYPE);
+            Number samplerParam = this.getParam().orElse(ProbabilisticSampler.DEFAULT_SAMPLING_PROBABILITY);
+            String hostPort = this.getManagerHostPort().orElse(HttpSamplingManager.DEFAULT_HOST_PORT);
 
             if (samplerType.equals(ConstSampler.TYPE)) {
                 return new ConstSampler(samplerParam.intValue() != 0);
@@ -399,16 +392,16 @@ public class Configuration {
             throw new IllegalStateException(String.format("Invalid sampling strategy %s", samplerType));
         }
 
-        public String getType() {
-            return type;
+        public Optional<String> getType() {
+            return Optional.ofNullable(type);
         }
 
-        public Number getParam() {
-            return param;
+        public Optional<Number> getParam() {
+            return Optional.ofNullable(param);
         }
 
-        public String getManagerHostPort() {
-            return managerHostPort;
+        public Optional<String> getManagerHostPort() {
+            return Optional.ofNullable(managerHostPort);
         }
 
         public SamplerConfiguration withType(String type) {
@@ -441,7 +434,7 @@ public class Configuration {
         }
 
         public static CodecConfiguration fromEnv() {
-            return fromString(getProperty(JAEGER_PROPAGATION));
+            return fromString(getProperty(JAEGER_PROPAGATION, String.class).orElse(null));
         }
 
         /**
@@ -525,7 +518,8 @@ public class Configuration {
             if (codecs.containsKey(format)) {
                 List<Codec<TextMap>> codecsForFormat = codecs.get(format);
                 Codec<TextMap> codec = codecsForFormat.size() == 1
-                                       ? codecsForFormat.get(0) : new CompositeCodec<>(codecsForFormat);
+                                       ? codecsForFormat.get(0)
+                                       : new CompositeCodec<>(codecsForFormat);
                 builder.registerInjector(format, codec);
                 builder.registerExtractor(format, codec);
             }
@@ -546,16 +540,17 @@ public class Configuration {
         private Boolean logSpans;
         private Integer flushIntervalMs;
         private Integer maxQueueSize;
-        private SenderConfiguration senderConfiguration = new SenderConfiguration();
+        private SenderConfiguration senderConfiguration;
 
         public ReporterConfiguration() {
+            this.senderConfiguration = new SenderConfiguration();
         }
 
         public static ReporterConfiguration fromEnv() {
             return new ReporterConfiguration()
-                    .withLogSpans(getPropertyAsBool(JAEGER_REPORTER_LOG_SPANS))
-                    .withFlushInterval(getPropertyAsInt(JAEGER_REPORTER_FLUSH_INTERVAL))
-                    .withMaxQueueSize(getPropertyAsInt(JAEGER_REPORTER_MAX_QUEUE_SIZE))
+                    .withLogSpans(getProperty(JAEGER_REPORTER_LOG_SPANS, Boolean.class).orElse(Boolean.FALSE))
+                    .withFlushInterval(getProperty(JAEGER_REPORTER_FLUSH_INTERVAL, Integer.class).orElse(null))
+                    .withMaxQueueSize(getProperty(JAEGER_REPORTER_MAX_QUEUE_SIZE, Integer.class).orElse(null))
                     .withSender(SenderConfiguration.fromEnv());
         }
 
@@ -583,8 +578,8 @@ public class Configuration {
             Reporter reporter = new RemoteReporter.Builder()
                     .withMetrics(metrics)
                     .withSender(senderConfiguration.getSender())
-                    .withFlushInterval(numberOrDefault(this.flushIntervalMs, RemoteReporter.DEFAULT_FLUSH_INTERVAL_MS).intValue())
-                    .withMaxQueueSize(numberOrDefault(this.maxQueueSize, RemoteReporter.DEFAULT_MAX_QUEUE_SIZE).intValue())
+                    .withFlushInterval(this.getFlushIntervalMs().orElse(RemoteReporter.DEFAULT_FLUSH_INTERVAL_MS))
+                    .withMaxQueueSize(this.getMaxQueueSize().orElse(RemoteReporter.DEFAULT_MAX_QUEUE_SIZE))
                     .build();
 
             if (Boolean.TRUE.equals(this.logSpans)) {
@@ -594,16 +589,16 @@ public class Configuration {
             return reporter;
         }
 
-        public Boolean getLogSpans() {
-            return logSpans;
+        public Optional<Boolean> getLogSpans() {
+            return Optional.ofNullable(logSpans);
         }
 
-        public Integer getFlushIntervalMs() {
-            return flushIntervalMs;
+        public Optional<Integer> getFlushIntervalMs() {
+            return Optional.ofNullable(flushIntervalMs);
         }
 
-        public Integer getMaxQueueSize() {
-            return maxQueueSize;
+        public Optional<Integer> getMaxQueueSize() {
+            return Optional.ofNullable(maxQueueSize);
         }
 
         public SenderConfiguration getSenderConfiguration() {
@@ -614,7 +609,6 @@ public class Configuration {
     /**
      * Holds the configuration related to the sender factory.
      */
-    @Getter
     public static class SenderFactoryConfiguration {
         /**
          * Sender factory type
@@ -628,8 +622,13 @@ public class Configuration {
             return this;
         }
 
+        public Optional<String> getType() {
+            return Optional.ofNullable(type);
+        }
+
         public static SenderFactoryConfiguration fromEnv() {
-            return new SenderFactoryConfiguration().withType(getProperty(JAEGER_SENDER_FACTORY));
+            return new SenderFactoryConfiguration()
+                    .withType(getProperty(JAEGER_SENDER_FACTORY, String.class).orElse(null));
         }
 
     }
@@ -638,7 +637,6 @@ public class Configuration {
      * Holds the configuration related to the sender. A sender is resolved using a {@link SenderResolver}.
      *
      */
-    @Getter
     public static class SenderConfiguration {
         /**
          * The Agent Host. Has no effect if the sender is set. Optional.
@@ -670,9 +668,10 @@ public class Configuration {
          */
         private String authPassword;
 
-        private SenderFactoryConfiguration senderFactoryConfiguration = new SenderFactoryConfiguration();
+        private SenderFactoryConfiguration senderFactoryConfiguration;
 
         public SenderConfiguration() {
+            this.senderFactoryConfiguration = new SenderFactoryConfiguration();
         }
 
         public SenderConfiguration withAgentHost(String agentHost) {
@@ -705,7 +704,7 @@ public class Configuration {
             return this;
         }
 
-        public SenderConfiguration fromSenderFactory(SenderFactoryConfiguration senderFactoryConfiguration) {
+        public SenderConfiguration forSenderFactory(SenderFactoryConfiguration senderFactoryConfiguration) {
             this.senderFactoryConfiguration = senderFactoryConfiguration;
             return this;
         }
@@ -718,101 +717,77 @@ public class Configuration {
             return SenderResolver.resolve(this);
         }
 
+        public Optional<String> getAgentHost() {
+            return Optional.ofNullable(agentHost);
+        }
+
+        public Optional<Integer> getAgentPort() {
+            return Optional.ofNullable(agentPort);
+        }
+
+        public Optional<String> getEndpoint() {
+            return Optional.ofNullable(endpoint);
+        }
+
+        public Optional<String> getAuthToken() {
+            return Optional.ofNullable(authToken);
+        }
+
+        public Optional<String> getAuthUsername() {
+            return Optional.ofNullable(authUsername);
+        }
+
+        public Optional<String> getAuthPassword() {
+            return Optional.ofNullable(authPassword);
+        }
+
+        public SenderFactoryConfiguration getSenderFactoryConfiguration() {
+            return senderFactoryConfiguration;
+        }
+
         /**
          * Attempts to create a new {@link SenderConfiguration} based on the environment variables
          * @return a new sender configuration based on environment variables
          */
         public static SenderConfiguration fromEnv() {
-            String agentHost = getProperty(JAEGER_AGENT_HOST);
-            Integer agentPort = getPropertyAsInt(JAEGER_AGENT_PORT);
-
-            String collectorEndpoint = getProperty(JAEGER_ENDPOINT);
-            String authToken = getProperty(JAEGER_AUTH_TOKEN);
-            String authUsername = getProperty(JAEGER_USER);
-            String authPassword = getProperty(JAEGER_PASSWORD);
-
             return new SenderConfiguration()
-                    .withAgentHost(agentHost)
-                    .withAgentPort(agentPort)
-                    .withEndpoint(collectorEndpoint)
-                    .withAuthToken(authToken)
-                    .withAuthUsername(authUsername)
-                    .withAuthPassword(authPassword)
-                    .fromSenderFactory(SenderFactoryConfiguration.fromEnv());
+                    .withAgentHost(getProperty(JAEGER_AGENT_HOST, String.class).orElse(null))
+                    .withAgentPort(getProperty(JAEGER_AGENT_PORT, Integer.class).orElse(null))
+                    .withEndpoint(getProperty(JAEGER_ENDPOINT, String.class).orElse(null))
+                    .withAuthToken(getProperty(JAEGER_AUTH_TOKEN, String.class).orElse(null))
+                    .withAuthUsername(getProperty(JAEGER_USER, String.class).orElse(null))
+                    .withAuthPassword(getProperty(JAEGER_PASSWORD, String.class).orElse(null))
+                    .forSenderFactory(SenderFactoryConfiguration.fromEnv());
         }
     }
 
-    private static String stringOrDefault(String value, String defaultValue) {
-        return value != null && value.length() > 0 ? value : defaultValue;
-    }
-
-    private static Number numberOrDefault(Number value, Number defaultValue) {
-        return value != null ? value : defaultValue;
-    }
-
-    private static String getProperty(String name) {
-        return System.getProperty(name, System.getenv(name));
-    }
-
-    private static Integer getPropertyAsInt(String name) {
-        String value = getProperty(name);
-        if (value != null) {
-            try {
-                return Integer.parseInt(value);
-            } catch (NumberFormatException e) {
-                log.error("Failed to parse integer for property '" + name + "' with value '" + value + "'", e);
-            }
-        }
-        return null;
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private static Number getPropertyAsNum(String name) {
-        String value = getProperty(name);
-        if (value != null) {
-            try {
-                return NumberFormat.getInstance().parse(value);
-            } catch (ParseException e) {
-                log.error("Failed to parse number for property '" + name + "' with value '" + value + "'", e);
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Gets the system property defined by the name , and returns a boolean value represented by
-     * the name. This method defaults to returning false for a name that doesn't exist.
-     * @param name The name of the system property
-     */
-    private static boolean getPropertyAsBool(String name) {
-        return Boolean.parseBoolean(getProperty(name));
+    private static <T> Optional<T> getProperty(String name, Class<T> type) {
+        return ConfigProvider.getConfig().getOptionalValue(name, type);
     }
 
     private static Map<String, String> tracerTagsFromEnv() {
-        Map<String, String> tracerTagMaps = null;
-        String tracerTags = getProperty(JAEGER_TAGS);
-        if (tracerTags != null) {
-            String[] tags = tracerTags.split("\\s*,\\s*");
-            for (String tag : tags) {
+        String[] tracerTags = getProperty(JAEGER_TAGS, String[].class).orElse(new String[0]);
+        System.out.println(Arrays.toString(tracerTags));
+        if (tracerTags.length > 0) {
+            Map<String, String> tracerTagsMap = new HashMap<>(tracerTags.length);
+            for (String tag : tracerTags) {
                 String[] tagValue = tag.split("\\s*=\\s*");
                 if (tagValue.length == 2) {
-                    if (tracerTagMaps == null) {
-                        tracerTagMaps = new HashMap<>();
-                    }
-                    tracerTagMaps.put(tagValue[0], resolveValue(tagValue[1]));
+                    tracerTagsMap.put(tagValue[0].trim(), resolveValue(tagValue[1]));
                 } else {
                     log.error("Tracer tag incorrectly formatted: " + tag);
                 }
             }
+            return tracerTagsMap;
         }
-        return tracerTagMaps;
+        return Collections.emptyMap();
     }
 
     private static String resolveValue(String value) {
         if (value.startsWith("${") && value.endsWith("}")) {
             String[] ref = value.substring(2, value.length() - 1).split("\\s*:\\s*");
             if (ref.length > 0) {
-                String propertyValue = getProperty(ref[0]);
+                String propertyValue = getProperty(ref[0], String.class).orElse(null);
                 if (propertyValue == null && ref.length > 1) {
                     propertyValue = ref[1];
                 }
