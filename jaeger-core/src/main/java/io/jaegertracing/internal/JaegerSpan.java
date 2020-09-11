@@ -65,8 +65,20 @@ public class JaegerSpan implements Span {
         this.tags = new HashMap<>();
         this.references = references != null ? new ArrayList<>(references) : null;
 
+        /*
+         * Handle SAMPLING_PRIORITY tag first as this influences whether setTagAsObject
+         * actually sets other tags on the context or not, and we are not guaranteed
+         * to hit SAMPLING_PRIORITY first because we are iterating over map
+         */
+        Object samplingPriorityValue = tags.get(Tags.SAMPLING_PRIORITY.getKey());
+        if (samplingPriorityValue != null) {
+            setTagAsObject(Tags.SAMPLING_PRIORITY.getKey(), samplingPriorityValue);
+        }
+
         for (Map.Entry<String, Object> tag : tags.entrySet()) {
-            setTagAsObject(tag.getKey(), tag.getValue());
+            if (!tag.getKey().equals(Tags.SAMPLING_PRIORITY.getKey())) {
+                setTagAsObject(tag.getKey(), tag.getValue());
+            }
         }
     }
 
