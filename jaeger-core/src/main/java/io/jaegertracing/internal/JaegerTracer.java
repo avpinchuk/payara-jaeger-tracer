@@ -690,7 +690,7 @@ public class JaegerTracer implements Tracer, Closeable {
     public static String getVersionFromProperties() {
         String version;
         try {
-            try (InputStream is = JaegerTracer.class.getResourceAsStream("jaeger.properties")) {
+            try (InputStream is = JaegerTracer.class.getResourceAsStream("/jaeger.properties")) {
                 Properties prop = new Properties();
                 prop.load(is);
                 version = prop.getProperty(Constants.JAEGER_CLIENT_VERSION_TAG_KEY);
