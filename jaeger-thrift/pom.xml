@@ -7,18 +7,18 @@
     <parent>
         <groupId>payara.opentracing.jaeger</groupId>
         <artifactId>payara-jaeger-tracer</artifactId>
-        <version>1.4.0.payara.p1</version>
+        <version>1.4.0.payara.p2-SNAPSHOT</version>
     </parent>
 
     <artifactId>jaeger-thrift</artifactId>
-    <version>1.4.0.payara.p1</version>
+    <version>1.4.0.payara.p2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>payara.opentracing.jaeger</groupId>
             <artifactId>jaeger-core</artifactId>
-            <version>1.4.0.payara.p1</version>
+            <version>1.4.0.payara.p2-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
