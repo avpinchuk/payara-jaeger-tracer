@@ -10,13 +10,13 @@
 ```sh
 mvn clean package
 ```
-To save a bit of time, you can skip tests by appending the skipTests flag to the install command like so:
+To save a bit of time, you can skip tests by appending the skipTests flag to the package command like so:
 
 ```sh
 mvn clean package -DskipTests
 ```
 
-Artifact resides under `assembly`/`target`.
+Artifact resides under `jaeger-tracer`/`target`.
    
 ### Configuration
 

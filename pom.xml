@@ -35,7 +35,6 @@
         <module>jaeger-core</module>
         <module>jaeger-thrift</module>
         <module>jaeger-tracer</module>
-        <module>assembly</module>
     </modules>
 
     <dependencyManagement>
@@ -213,17 +212,6 @@
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-assembly-plugin</artifactId>
-                    <version>3.3.0</version>
-                    <configuration>
-                        <descriptors>
-                            <descriptor>assembly/descriptor.xml</descriptor>
-                        </descriptors>
-                        <appendAssemblyId>false</appendAssemblyId>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-clean-plugin</artifactId>
                     <version>3.1.0</version>
                 </plugin>
@@ -251,6 +239,11 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
                     <version>3.2.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>3.2.4</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
