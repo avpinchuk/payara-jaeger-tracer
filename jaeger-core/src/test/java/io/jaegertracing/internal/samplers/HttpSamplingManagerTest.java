@@ -14,10 +14,6 @@
 
 package io.jaegertracing.internal.samplers;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
 import io.jaegertracing.internal.exceptions.SamplingStrategyErrorException;
 import io.jaegertracing.internal.samplers.http.OperationSamplingParameters;
 import io.jaegertracing.internal.samplers.http.PerOperationSamplingParameters;
@@ -25,6 +21,14 @@ import io.jaegertracing.internal.samplers.http.ProbabilisticSamplingStrategy;
 import io.jaegertracing.internal.samplers.http.RateLimitingSamplingStrategy;
 import io.jaegertracing.internal.samplers.http.SamplingStrategyResponse;
 import io.jaegertracing.mocks.MockAgentResource;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.test.JerseyTest;
+import org.glassfish.jersey.test.TestProperties;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import javax.ws.rs.core.Application;
 import java.io.File;
 import java.net.URI;
 import java.net.URL;
@@ -33,13 +37,10 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
-import javax.ws.rs.core.Application;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
-import org.glassfish.jersey.test.TestProperties;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public class HttpSamplingManagerTest extends JerseyTest {
 

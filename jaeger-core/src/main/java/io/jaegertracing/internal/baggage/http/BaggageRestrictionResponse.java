@@ -14,10 +14,58 @@
 
 package io.jaegertracing.internal.baggage.http;
 
-import lombok.Value;
+import java.util.Objects;
 
-@Value
 public class BaggageRestrictionResponse {
-    String baggageKey;
-    int maxValueLength;
+    private String baggageKey;
+    private int maxValueLength;
+
+    public BaggageRestrictionResponse() { }
+
+    public BaggageRestrictionResponse(String baggageKey, int maxValueLength) {
+        this.baggageKey = baggageKey;
+        this.maxValueLength = maxValueLength;
+    }
+
+    public String getBaggageKey() {
+        return baggageKey;
+    }
+
+    public void setBaggageKey(String baggageKey) {
+        this.baggageKey = baggageKey;
+    }
+
+    public int getMaxValueLength() {
+        return maxValueLength;
+    }
+
+    public void setMaxValueLength(int maxValueLength) {
+        this.maxValueLength = maxValueLength;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(baggageKey, maxValueLength);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof BaggageRestrictionResponse)) {
+            return false;
+        }
+        BaggageRestrictionResponse other = (BaggageRestrictionResponse) obj;
+        return Objects.equals(other.baggageKey, baggageKey)
+                && other.maxValueLength == maxValueLength;
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName()
+               + "(baggageKey=" + baggageKey
+               + ", maxValueLength=" + maxValueLength + ")";
+    }
+
 }

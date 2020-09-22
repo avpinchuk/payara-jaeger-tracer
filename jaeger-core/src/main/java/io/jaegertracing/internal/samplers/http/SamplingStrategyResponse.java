@@ -14,11 +14,73 @@
 
 package io.jaegertracing.internal.samplers.http;
 
-import lombok.Value;
+import java.util.Objects;
 
-@Value
 public class SamplingStrategyResponse {
-    ProbabilisticSamplingStrategy probabilisticSampling;
-    RateLimitingSamplingStrategy rateLimitingSampling;
-    OperationSamplingParameters operationSampling;
+    private ProbabilisticSamplingStrategy probabilisticSampling;
+    private RateLimitingSamplingStrategy rateLimitingSampling;
+    private OperationSamplingParameters operationSampling;
+
+    public SamplingStrategyResponse() { }
+
+    public SamplingStrategyResponse(
+            ProbabilisticSamplingStrategy probabilisticSampling,
+            RateLimitingSamplingStrategy rateLimitingSampling,
+            OperationSamplingParameters operationSampling) {
+        this.probabilisticSampling = probabilisticSampling;
+        this.rateLimitingSampling = rateLimitingSampling;
+        this.operationSampling = operationSampling;
+    }
+
+    public ProbabilisticSamplingStrategy getProbabilisticSampling() {
+        return probabilisticSampling;
+    }
+
+    public void setProbabilisticSampling(ProbabilisticSamplingStrategy probabilisticSampling) {
+        this.probabilisticSampling = probabilisticSampling;
+    }
+
+    public RateLimitingSamplingStrategy getRateLimitingSampling() {
+        return rateLimitingSampling;
+    }
+
+    public void setRateLimitingSampling(RateLimitingSamplingStrategy rateLimitingSampling) {
+        this.rateLimitingSampling = rateLimitingSampling;
+    }
+
+    public OperationSamplingParameters getOperationSampling() {
+        return operationSampling;
+    }
+
+    public void setOperationSampling(OperationSamplingParameters operationSampling) {
+        this.operationSampling = operationSampling;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(probabilisticSampling, rateLimitingSampling, operationSampling);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof SamplingStrategyResponse)) {
+            return false;
+        }
+        SamplingStrategyResponse other = (SamplingStrategyResponse) obj;
+        return Objects.equals(other.probabilisticSampling, probabilisticSampling)
+                && Objects.equals(other.rateLimitingSampling, rateLimitingSampling)
+                && Objects.equals(other.operationSampling, operationSampling);
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName()
+                + "(probabilisticSampling=" + probabilisticSampling
+                + ", reteLimitingSampling=" + rateLimitingSampling
+                + ", operationSampling=" + operationSampling + ")";
+    }
+
 }

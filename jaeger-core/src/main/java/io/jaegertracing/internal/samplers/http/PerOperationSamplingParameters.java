@@ -14,10 +14,58 @@
 
 package io.jaegertracing.internal.samplers.http;
 
-import lombok.Value;
+import java.util.Objects;
 
-@Value
 public class PerOperationSamplingParameters {
-    String operation;
-    ProbabilisticSamplingStrategy probabilisticSampling;
+    private String operation;
+    private ProbabilisticSamplingStrategy probabilisticSampling;
+
+    public PerOperationSamplingParameters() { }
+
+    public PerOperationSamplingParameters(String operation, ProbabilisticSamplingStrategy probabilisticSampling) {
+        this.operation = operation;
+        this.probabilisticSampling = probabilisticSampling;
+    }
+
+    public String getOperation() {
+        return operation;
+    }
+
+    public void setOperation(String operation) {
+        this.operation = operation;
+    }
+
+    public ProbabilisticSamplingStrategy getProbabilisticSampling() {
+        return probabilisticSampling;
+    }
+
+    public void setProbabilisticSampling(ProbabilisticSamplingStrategy probabilisticSampling) {
+        this.probabilisticSampling = probabilisticSampling;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(operation, probabilisticSampling);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof PerOperationSamplingParameters)) {
+            return false;
+        }
+        PerOperationSamplingParameters other = (PerOperationSamplingParameters) obj;
+        return Objects.equals(other.operation, operation)
+                && Objects.equals(other.probabilisticSampling, probabilisticSampling);
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName()
+               + "(operation=" + operation
+               + ", probabilisticSampling=" + probabilisticSampling + ")";
+    }
+
 }

@@ -14,9 +14,44 @@
 
 package io.jaegertracing.internal.samplers.http;
 
-import lombok.Value;
-
-@Value
 public class ProbabilisticSamplingStrategy {
-    double samplingRate;
+    private double samplingRate;
+
+    public ProbabilisticSamplingStrategy() { }
+
+    public ProbabilisticSamplingStrategy(double samplingRate) {
+        this.samplingRate = samplingRate;
+    }
+
+    public double getSamplingRate() {
+        return samplingRate;
+    }
+
+    public void setSamplingRate(double samplingRate) {
+        this.samplingRate = samplingRate;
+    }
+
+    @Override
+    public int hashCode() {
+        return Double.hashCode(samplingRate);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof ProbabilisticSamplingStrategy)) {
+            return false;
+        }
+        ProbabilisticSamplingStrategy other = (ProbabilisticSamplingStrategy) obj;
+        return Double.compare(other.samplingRate, samplingRate) == 0;
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName()
+               + "(samplingRate=" + samplingRate + ")";
+    }
+
 }

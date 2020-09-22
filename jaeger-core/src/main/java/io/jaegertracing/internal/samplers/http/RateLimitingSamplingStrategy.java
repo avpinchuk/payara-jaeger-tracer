@@ -14,9 +14,44 @@
 
 package io.jaegertracing.internal.samplers.http;
 
-import lombok.Value;
-
-@Value
 public class RateLimitingSamplingStrategy {
-    double maxTracesPerSecond;
+    private double maxTracesPerSecond;
+
+    public RateLimitingSamplingStrategy() { }
+
+    public RateLimitingSamplingStrategy(double maxTracesPerSecond) {
+        this.maxTracesPerSecond = maxTracesPerSecond;
+    }
+
+    public double getMaxTracesPerSecond() {
+        return maxTracesPerSecond;
+    }
+
+    public void setMaxTracesPerSecond(double maxTracesPerSecond) {
+        this.maxTracesPerSecond = maxTracesPerSecond;
+    }
+
+    @Override
+    public int hashCode() {
+        return Double.hashCode(maxTracesPerSecond);
+    }
+
+
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof RateLimitingSamplingStrategy)) {
+            return false;
+        }
+        RateLimitingSamplingStrategy other = (RateLimitingSamplingStrategy) obj;
+        return Double.compare(other.maxTracesPerSecond, maxTracesPerSecond) == 0;
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName()
+               + "(maxTracesPerSecond=" + maxTracesPerSecond + ")";
+    }
+
 }

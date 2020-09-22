@@ -14,16 +14,9 @@
 
 package io.jaegertracing.internal.baggage;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import io.jaegertracing.internal.baggage.http.BaggageRestrictionResponse;
 import io.jaegertracing.internal.exceptions.BaggageRestrictionManagerException;
 import io.jaegertracing.mocks.MockAgentResource;
-import java.net.URI;
-import java.util.List;
-import java.util.Properties;
-import javax.ws.rs.core.Application;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
@@ -31,6 +24,14 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import javax.ws.rs.core.Application;
+import java.net.URI;
+import java.util.List;
+import java.util.Properties;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class HttpBaggageRestrictionManagerProxyTest extends JerseyTest {
 
@@ -86,4 +87,5 @@ public class HttpBaggageRestrictionManagerProxyTest extends JerseyTest {
     public void testParseInvalidJson() throws Exception {
         undertest.parseJson("invalid json");
     }
+
 }
