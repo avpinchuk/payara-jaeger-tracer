@@ -80,6 +80,10 @@
                                     <pattern>org.slf4j</pattern>
                                     <shadedPattern>io.github.avpinchuk.slf4j</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>org.apache.thrift</pattern>
+                                    <shadedPattern>io.github.avpinchuk.thrift</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>
