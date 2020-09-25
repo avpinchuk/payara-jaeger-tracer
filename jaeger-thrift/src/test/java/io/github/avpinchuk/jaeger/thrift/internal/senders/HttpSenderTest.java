@@ -73,7 +73,7 @@ public class HttpSenderTest extends JerseyTest {
 
     @Override
     protected Application configure() {
-        return new ResourceConfig().register(new TraceAccepter());
+        return new ResourceConfig().register(TraceAccepter.class);
     }
 
     @Parameter

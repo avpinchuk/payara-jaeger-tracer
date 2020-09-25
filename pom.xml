@@ -21,7 +21,7 @@
         <payara.version>5.194</payara.version>
         <junit.version>4.13</junit.version>
         <mockito.version>3.5.13</mockito.version>
-        <jersey.version>2.22.2</jersey.version>
+        <jersey.version>2.31</jersey.version>
         <junit.dataprovider.version>1.13.1</junit.dataprovider.version>
         <awaitility.version>3.0.0</awaitility.version>
         <logback.version>1.2.3</logback.version>
@@ -116,10 +116,11 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.glassfish.jersey.test-framework.providers</groupId>
-                <artifactId>jersey-test-framework-provider-grizzly2</artifactId>
+                <groupId>org.glassfish.jersey</groupId>
+                <artifactId>jersey-bom</artifactId>
                 <version>${jersey.version}</version>
-                <scope>test</scope>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>com.tngtech.java</groupId>
@@ -179,6 +180,12 @@
         <dependency>
             <groupId>org.glassfish.jersey.test-framework.providers</groupId>
             <artifactId>jersey-test-framework-provider-grizzly2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.inject</groupId>
+            <artifactId>jersey-hk2</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.tngtech.java</groupId>
