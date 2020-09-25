@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>payara.opentracing.jaeger</groupId>
+        <groupId>io.github.avpinchuk.jaeger</groupId>
         <artifactId>payara-jaeger-tracer</artifactId>
         <version>1.4.0.payara.p2-SNAPSHOT</version>
     </parent>

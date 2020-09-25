@@ -1,1 +1,1 @@
-io.jaegertracing.config.NumberConverter
+io.github.avpinchuk.jaeger.config.NumberConverter

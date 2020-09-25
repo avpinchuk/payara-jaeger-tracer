@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>payara.opentracing.jaeger</groupId>
+        <groupId>io.github.avpinchuk.jaeger</groupId>
         <artifactId>payara-jaeger-tracer</artifactId>
         <version>1.4.0.payara.p2-SNAPSHOT</version>
     </parent>
@@ -16,12 +16,12 @@
 
     <dependencies>
         <dependency>
-            <groupId>payara.opentracing.jaeger</groupId>
+            <groupId>io.github.avpinchuk.jaeger</groupId>
             <artifactId>jaeger-core</artifactId>
             <version>1.4.0.payara.p2-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>payara.opentracing.jaeger</groupId>
+            <groupId>io.github.avpinchuk.jaeger</groupId>
             <artifactId>jaeger-thrift</artifactId>
             <version>1.4.0.payara.p2-SNAPSHOT</version>
         </dependency>
@@ -63,13 +63,13 @@
                                     </excludes>
                                 </filter>
                                 <filter>
-                                    <artifact>payara.opentracing.jaeger:jaeger-core</artifact>
+                                    <artifact>io.github.avpinchuk.jaeger:jaeger-core</artifact>
                                     <excludes>
                                         <exclude>META-INF/MANIFEST.MF</exclude>
                                     </excludes>
                                 </filter>
                                 <filter>
-                                    <artifact>payara.opentracing.jaeger:jaeger-thrift</artifact>
+                                    <artifact>io.github.avpinchuk.jaeger:jaeger-thrift</artifact>
                                     <excludes>
                                         <exclude>META-INF/MANIFEST.MF</exclude>
                                     </excludes>

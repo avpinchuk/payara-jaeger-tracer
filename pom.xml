@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>payara.opentracing.jaeger</groupId>
+    <groupId>io.github.avpinchuk.jaeger</groupId>
     <artifactId>payara-jaeger-tracer</artifactId>
     <version>1.4.0.payara.p2-SNAPSHOT</version>
     <packaging>pom</packaging>

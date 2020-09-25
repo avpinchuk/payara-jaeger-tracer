@@ -1,1 +1,1 @@
-payara.opentracing.jaeger.PayaraJaegerTracer
+io.github.avpinchuk.jaeger.payara.opentracing.PayaraJaegerTracer
