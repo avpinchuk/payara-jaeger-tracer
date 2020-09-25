@@ -6,7 +6,7 @@
 
     <groupId>io.github.avpinchuk.jaeger</groupId>
     <artifactId>payara-jaeger-tracer</artifactId>
-    <version>1.4.0.payara.p2-SNAPSHOT</version>
+    <version>1.4.0.payara.p2</version>
     <packaging>pom</packaging>
 
     <properties>
