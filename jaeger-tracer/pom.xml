@@ -51,24 +51,6 @@
                             <finalName>${project.artifactId}-all-${project.version}</finalName>
                             <filters>
                                 <filter>
-                                    <artifact>org.jetbrains.kotlin:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/MANIFEST.MF</exclude>
-                                    </excludes>
-                                </filter>
-                                <filter>
-                                    <artifact>org.jetbrains:annotations</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/MANIFEST.MF</exclude>
-                                    </excludes>
-                                </filter>
-                                <filter>
-                                    <artifact>com.squareup.*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/MANIFEST.MF</exclude>
-                                    </excludes>
-                                </filter>
-                                <filter>
                                     <artifact>org.slf4j:*</artifact>
                                     <excludes>
                                         <exclude>META-INF/MANIFEST.MF</exclude>

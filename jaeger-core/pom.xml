@@ -27,11 +27,6 @@
             <groupId>jakarta.json.bind</groupId>
             <artifactId>jakarta.json.bind-api</artifactId>
         </dependency>
-        <!-- Test dependencies -->
-        <dependency>
-            <groupId>org.eclipse</groupId>
-            <artifactId>yasson</artifactId>
-        </dependency>
     </dependencies>
     
 </project>

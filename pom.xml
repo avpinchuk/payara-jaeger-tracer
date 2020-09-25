@@ -17,8 +17,6 @@
         <lombok.version>1.18.12</lombok.version>
         <slf4j.version>1.7.30</slf4j.version>
         <libthrift.version>0.13.0</libthrift.version>
-        <okhttp.version>4.2.2</okhttp.version>
-        <okio.version>2.2.2</okio.version>
         <microprofile.config.version>1.4</microprofile.config.version>
         <payara.version>5.194</payara.version>
         <junit.version>4.13</junit.version>
@@ -77,28 +75,6 @@
                     <exclusion>
                         <groupId>*</groupId>
                         <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.squareup.okhttp3</groupId>
-                <artifactId>okhttp</artifactId>
-                <version>${okhttp.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.squareup.okio</groupId>
-                        <artifactId>okio</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.squareup.okio</groupId>
-                <artifactId>okio</artifactId>
-                <version>${okio.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.jetbrains.kotlin</groupId>
-                        <artifactId>kotlin-stdlib</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -219,6 +195,10 @@
         <dependency>
             <groupId>io.smallrye.config</groupId>
             <artifactId>smallrye-config</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse</groupId>
+            <artifactId>yasson</artifactId>
         </dependency>
     </dependencies>
 

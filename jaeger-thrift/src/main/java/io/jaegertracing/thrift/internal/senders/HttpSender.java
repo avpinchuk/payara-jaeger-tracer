@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2016, Uber Technologies, Inc
+ * Copyright (c) 2020, Alexander Pinchuk
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -18,37 +19,57 @@ import io.jaegertracing.internal.exceptions.SenderException;
 import io.jaegertracing.thriftjava.Batch;
 import io.jaegertracing.thriftjava.Process;
 import io.jaegertracing.thriftjava.Span;
-import java.io.IOException;
-import java.util.List;
 import lombok.ToString;
-import okhttp3.Credentials;
-import okhttp3.HttpUrl;
-import okhttp3.Interceptor;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Base64;
+import java.util.List;
 
 @ToString
 public class HttpSender extends ThriftSender {
+
+    /**
+     * HTTP Collector format query parameter
+     */
     private static final String HTTP_COLLECTOR_JAEGER_THRIFT_FORMAT_PARAM = "format=jaeger.thrift";
-    private static final int ONE_MB_IN_BYTES = 1048576;
-    private static final MediaType MEDIA_TYPE_THRIFT = MediaType.parse("application/x-thrift");
 
-    @ToString.Exclude private final OkHttpClient httpClient;
-    @ToString.Exclude private final Request.Builder requestBuilder;
+    /**
+     * Default max packet size in bytes
+     */
+    private static final int DEFAULT_MAX_PACKET_SIZE = 1048576;
 
-    protected HttpSender(Builder builder) {
+    /**
+     * Thrift media type
+     */
+    private static final String MEDIA_TYPE_THRIFT = "application/x-thrift";
+
+    /**
+     * Connect timeout in milliseconds
+     */
+    private static final int CONNECT_TIMEOUT = 10_000;
+
+    /**
+     * Read timeout in milliseconds
+     */
+    private static final int READ_TIMEOUT = 10_000;
+
+    private final URL url;
+    private final String authorization;
+
+    private HttpSender(Builder builder) {
         super(ProtocolType.Binary, builder.maxPacketSize);
-        HttpUrl collectorUrl = HttpUrl
-                .parse(String.format("%s?%s", builder.endpoint, HTTP_COLLECTOR_JAEGER_THRIFT_FORMAT_PARAM));
-        if (collectorUrl == null) {
-            throw new IllegalArgumentException("Could not parse url.");
+
+        try {
+            this.url = new URL(String.format("%s?%s", builder.endpoint, HTTP_COLLECTOR_JAEGER_THRIFT_FORMAT_PARAM));
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("Could not parse url", e);
         }
-        this.httpClient = builder.clientBuilder.build();
-        this.requestBuilder = new Request.Builder().url(collectorUrl);
+        this.authorization = builder.authorization;
     }
 
     @Override
@@ -61,81 +82,86 @@ public class HttpSender extends ThriftSender {
             throw new SenderException(String.format("Failed to serialize %d spans", spans.size()), e, spans.size());
         }
 
-        RequestBody body = RequestBody.create(bytes, MEDIA_TYPE_THRIFT);
-        Request request = requestBuilder.post(body).build();
-        Response response;
         try {
-            response = httpClient.newCall(request).execute();
+            HttpURLConnection uc = (HttpURLConnection) url.openConnection();
+
+            uc.setDoOutput(true);
+            uc.setConnectTimeout(CONNECT_TIMEOUT);
+            uc.setReadTimeout(READ_TIMEOUT);
+            uc.setRequestMethod("POST");
+            uc.setRequestProperty("Content-Type", MEDIA_TYPE_THRIFT);
+            uc.setRequestProperty("Content-Length", String.valueOf(bytes.length));
+            if (authorization != null) {
+                uc.setRequestProperty("Authorization", authorization);
+            }
+
+            try (OutputStream out = uc.getOutputStream()) {
+                out.write(bytes);
+            }
+
+            // dry response and handle error if any
+            try (InputStream in = uc.getInputStream()) {
+                skipAllBytes(in);
+            } catch (IOException e) {
+                String error = uc.getResponseMessage();
+                try (InputStream err = uc.getErrorStream()) {
+                    if (err != null) {
+                        StringBuilder sb = new StringBuilder();
+                        int ch;
+                        while ((ch = err.read()) != -1) {
+                            sb.append(ch);
+                        }
+                        error = sb.toString();
+                    }
+                } catch (IOException ignored) { }
+                String exceptionMessage =
+                        String.format("Could not send %d spans, response %d: %s",
+                                      spans.size(), uc.getResponseCode(), error);
+                throw new SenderException(exceptionMessage, null, spans.size());
+            }
         } catch (IOException e) {
             throw new SenderException(String.format("Could not send %d spans", spans.size()), e, spans.size());
         }
+    }
 
-        if (response.isSuccessful()) {
-            response.close();
-            return;
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    private void skipAllBytes(InputStream in) throws IOException {
+        if (in != null) {
+            while (in.read() != -1)
+                ;
         }
-
-        String responseBodyString;
-        try {
-            ResponseBody responseBody = response.body();
-            responseBodyString = responseBody != null ? responseBody.string() : "null";
-        } catch (IOException e) {
-            responseBodyString = "unable to read response";
-        }
-
-        String exceptionMessage = String.format("Could not send %d spans, response %d: %s",
-                                                spans.size(), response.code(), responseBodyString);
-        throw new SenderException(exceptionMessage, null, spans.size());
     }
 
     @SuppressWarnings("UnusedReturnValue")
     public static class Builder {
         private final String endpoint;
-        private int maxPacketSize = ONE_MB_IN_BYTES;
-        private Interceptor authInterceptor;
-        private OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
+        private int maxPacketSize = DEFAULT_MAX_PACKET_SIZE;
+        private String authorization = null;
 
-        /**
-         * @param endpoint jaeger-collector HTTP endpoint e.g. http://localhost:14268/api/traces
-         */
         public Builder(String endpoint) {
             this.endpoint = endpoint;
         }
 
-        public Builder withClient(OkHttpClient client) {
-            this.clientBuilder = client.newBuilder();
+        public Builder withMaxPacketSize(int maxPacketSize) {
+            this.maxPacketSize = maxPacketSize;
             return this;
         }
 
-        public Builder withMaxPacketSize(int maxPacketSizeBytes) {
-            this.maxPacketSize = maxPacketSizeBytes;
+        public Builder withBasicAuth(String username, String password) {
+            String basicCredentials = username + ":" + password;
+            this.authorization = "Basic " + Base64.getEncoder().encodeToString(basicCredentials.getBytes());
             return this;
         }
 
-        public Builder withAuth(String username, String password) {
-            this.authInterceptor = getAuthInterceptor(Credentials.basic(username, password));
-            return this;
-        }
-
-        public Builder withAuth(String authToken) {
-            this.authInterceptor = getAuthInterceptor("Bearer " + authToken);
+        public Builder withBearerAuth(String authToken) {
+            this.authorization = "Bearer " + authToken;
             return this;
         }
 
         public HttpSender build() {
-            if (authInterceptor != null) {
-                clientBuilder.addInterceptor(authInterceptor);
-            }
             return new HttpSender(this);
         }
-
-        private Interceptor getAuthInterceptor(final String headerValue) {
-            return chain -> chain.proceed(
-                    chain.request()
-                         .newBuilder()
-                         .addHeader("Authorization", headerValue)
-                         .build()
-            );
-        }
     }
+
 }
