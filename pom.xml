@@ -20,7 +20,7 @@
         <microprofile.config.version>1.4</microprofile.config.version>
         <payara.version>5.194</payara.version>
         <junit.version>4.13</junit.version>
-        <mockito.version>2.12.0</mockito.version>
+        <mockito.version>3.5.13</mockito.version>
         <jersey.version>2.22.2</jersey.version>
         <junit.dataprovider.version>1.13.1</junit.dataprovider.version>
         <awaitility.version>3.0.0</awaitility.version>
