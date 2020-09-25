@@ -134,10 +134,6 @@ public class RequestTracingBean {
 }
 ```
 
-### Notes
-
- * This library already contains SLF4J binding for Java Util Logging.
- 
 ### License
 
 [Apache 2.0 License](./LICENSE). 
