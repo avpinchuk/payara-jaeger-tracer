@@ -15,10 +15,6 @@
 
 package io.github.avpinchuk.jaeger.config;
 
-import io.github.avpinchuk.jaeger.spi.Codec;
-import io.github.avpinchuk.jaeger.spi.MetricsFactory;
-import io.github.avpinchuk.jaeger.spi.Reporter;
-import io.github.avpinchuk.jaeger.spi.Sampler;
 import io.github.avpinchuk.jaeger.internal.JaegerTracer;
 import io.github.avpinchuk.jaeger.internal.metrics.Metrics;
 import io.github.avpinchuk.jaeger.internal.metrics.NoopMetricsFactory;
@@ -36,6 +32,10 @@ import io.github.avpinchuk.jaeger.internal.samplers.ProbabilisticSampler;
 import io.github.avpinchuk.jaeger.internal.samplers.RateLimitingSampler;
 import io.github.avpinchuk.jaeger.internal.samplers.RemoteControlledSampler;
 import io.github.avpinchuk.jaeger.internal.senders.SenderResolver;
+import io.github.avpinchuk.jaeger.spi.Codec;
+import io.github.avpinchuk.jaeger.spi.MetricsFactory;
+import io.github.avpinchuk.jaeger.spi.Reporter;
+import io.github.avpinchuk.jaeger.spi.Sampler;
 import io.github.avpinchuk.jaeger.spi.Sender;
 import io.github.avpinchuk.jaeger.spi.SenderFactory;
 import io.opentracing.propagation.Format;
@@ -44,7 +44,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.ConfigProvider;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -359,7 +360,7 @@ public class Configuration {
         public static SamplerConfiguration fromEnv() {
             return new SamplerConfiguration()
                     .withType(getProperty(JAEGER_SAMPLER_TYPE, String.class).orElse(null))
-                    .withParam(getProperty(JAEGER_SAMPLER_PARAM, Number.class).orElse(null))
+                    .withParam(getNumberProperty(JAEGER_SAMPLER_PARAM).orElse(null))
                     .withManagerHostPort(getProperty(JAEGER_SAMPLER_MANAGER_HOST_PORT, String.class).orElse(null));
         }
 
@@ -765,9 +766,21 @@ public class Configuration {
         return ConfigProvider.getConfig().getOptionalValue(name, type);
     }
 
+    @SuppressWarnings("SameParameterValue")
+    private static Optional<Number> getNumberProperty(String name) {
+        Optional<String> value = ConfigProvider.getConfig().getOptionalValue(name, String.class);
+        if (value.isPresent()) {
+            try {
+                return Optional.of(NumberFormat.getInstance().parse(value.get()));
+            } catch (ParseException e) {
+                throw new IllegalArgumentException("Failed to parse number for string '" + value + "'");
+            }
+        }
+        return Optional.empty();
+    }
+
     private static Map<String, String> tracerTagsFromEnv() {
         String[] tracerTags = getProperty(JAEGER_TAGS, String[].class).orElse(new String[0]);
-        System.out.println(Arrays.toString(tracerTags));
         if (tracerTags.length > 0) {
             Map<String, String> tracerTagsMap = new HashMap<>(tracerTags.length);
             for (String tag : tracerTags) {
