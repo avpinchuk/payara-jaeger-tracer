@@ -48,6 +48,11 @@ public class MicroprofileMetricsFactory implements MetricsFactory {
         return new MicroprofileGauge(registry, name, convertTags(tags));
     }
 
+    @Override
+    public String toString() {
+        return getClass().getName();
+    }
+
     /**
      * Converts tags from tag map to arrays of microprofile {@code Tag}s.
      *
