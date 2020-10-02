@@ -22,6 +22,11 @@
         </dependency>
         <dependency>
             <groupId>io.github.avpinchuk.jaeger</groupId>
+            <artifactId>jaeger-metrics</artifactId>
+            <version>1.4.0.p3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.avpinchuk.jaeger</groupId>
             <artifactId>jaeger-thrift</artifactId>
             <version>1.4.0.p3-SNAPSHOT</version>
         </dependency>

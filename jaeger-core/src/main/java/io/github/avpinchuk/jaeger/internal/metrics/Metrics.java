@@ -26,7 +26,7 @@ import java.util.TreeMap;
 public class Metrics {
 
     public Metrics(MetricsFactory factory) {
-        this(factory, "jaeger_tracer_");
+        this(factory, "jaeger.tracer.");
     }
 
     public Metrics(MetricsFactory factory, String metricsPrefix) {
@@ -139,71 +139,71 @@ public class Metrics {
     // Number of externally started not-sampled traces this tracer joined
     public Counter tracesJoinedNotSampled;
 
-    @Metric(name = "started_spans", tags = @Tag(key = "sampled", value = "y"))
+    @Metric(name = "started.spans", tags = @Tag(key = "sampled", value = "y"))
     // Number of sampled spans started by this tracer
     public Counter spansStartedSampled;
 
-    @Metric(name = "started_spans", tags = @Tag(key = "sampled", value = "n"))
+    @Metric(name = "started.spans", tags = @Tag(key = "sampled", value = "n"))
     // Number of unsampled spans started by this tracer
     public Counter spansStartedNotSampled;
 
-    @Metric(name = "finished_spans")
+    @Metric(name = "finished.spans")
     // Number of spans finished by this tracer
     public Counter spansFinished;
 
-    @Metric(name = "span_context_decoding_errors")
+    @Metric(name = "span.context.decoding.errors")
     // Number of errors decoding tracing context
     public Counter decodingErrors;
 
-    @Metric(name = "reporter_spans", tags = @Tag(key = "result", value = "ok"))
+    @Metric(name = "reporter.spans", tags = @Tag(key = "result", value = "ok"))
     // Number of spans successfully reported
     public Counter reporterSuccess;
 
-    @Metric(name = "reporter_spans", tags = @Tag(key = "result", value = "err"))
+    @Metric(name = "reporter.spans", tags = @Tag(key = "result", value = "err"))
     // Number of spans not reported due to a Sender failure
     public Counter reporterFailure;
 
-    @Metric(name = "reporter_spans", tags = @Tag(key = "result", value = "dropped"))
+    @Metric(name = "reporter.spans", tags = @Tag(key = "result", value = "dropped"))
     // Number of spans dropped due to internal queue overflow
     public Counter reporterDropped;
 
-    @Metric(name = "reporter_queue_length")
+    @Metric(name = "reporter.queue.length")
     // Current number of spans in the reporter queue
     public Gauge reporterQueueLength;
 
-    @Metric(name = "sampler_queries", tags = @Tag(key = "result", value = "ok"))
+    @Metric(name = "sampler.queries", tags = @Tag(key = "result", value = "ok"))
     // Number of times the Sampler succeeded to retrieve sampling strategy
     public Counter samplerRetrieved;
 
-    @Metric(name = "sampler_queries", tags = @Tag(key = "result", value = "err"))
+    @Metric(name = "sampler.queries", tags = @Tag(key = "result", value = "err"))
     // Number of times the Sampler failed to retrieve sampling strategy
     public Counter samplerQueryFailure;
 
-    @Metric(name = "sampler_updates", tags = @Tag(key = "result", value = "ok"))
+    @Metric(name = "sampler.updates", tags = @Tag(key = "result", value = "ok"))
     // Number of times the Sampler succeeded to retrieve and update sampling strategy
     public Counter samplerUpdated;
 
-    @Metric(name = "sampler_updates", tags = @Tag(key = "result", value = "err"))
+    @Metric(name = "sampler.updates", tags = @Tag(key = "result", value = "err"))
     // Number of times the Sampler failed to update sampling strategy
     public Counter samplerParsingFailure;
 
-    @Metric(name = "baggage_updates", tags = @Tag(key = "result", value = "ok"))
+    @Metric(name = "baggage.updates", tags = @Tag(key = "result", value = "ok"))
     // Number of times baggage was successfully written or updated on spans.
     public Counter baggageUpdateSuccess;
 
-    @Metric(name = "baggage_updates", tags = @Tag(key = "result", value = "err"))
+    @Metric(name = "baggage.updates", tags = @Tag(key = "result", value = "err"))
     // Number of times baggage failed to write or update on spans
     public Counter baggageUpdateFailure;
 
-    @Metric(name = "baggage_truncations")
+    @Metric(name = "baggage.truncations")
     // Number of times baggage was truncated as per baggage restrictions
     public Counter baggageTruncate;
 
-    @Metric(name = "baggage_restrictions_updates", tags = @Tag(key = "result", value = "ok"))
+    @Metric(name = "baggage.restrictions.updates", tags = @Tag(key = "result", value = "ok"))
     // Number of times baggage restrictions were successfully updated.
     public Counter baggageRestrictionsUpdateSuccess;
 
-    @Metric(name = "baggage_restrictions_updates", tags = @Tag(key = "result", value = "err"))
+    @Metric(name = "baggage.restrictions.updates", tags = @Tag(key = "result", value = "err"))
     // Number of times baggage restrictions failed to update.
     public Counter baggageRestrictionsUpdateFailure;
 }

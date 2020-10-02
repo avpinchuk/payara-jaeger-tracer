@@ -112,9 +112,9 @@ public class RemoteReporterTest {
         assertEquals(0, sender.getAppended().size());
         assertEquals(numberOfSpans, sender.getFlushed().size());
 
-        assertEquals(100, metricsFactory.getCounter("jaeger_tracer_started_spans", "sampled=y"));
-        assertEquals(100, metricsFactory.getCounter("jaeger_tracer_reporter_spans", "result=ok"));
-        assertEquals(100, metricsFactory.getCounter("jaeger_tracer_traces", "sampled=y,state=started"));
+        assertEquals(100, metricsFactory.getCounter("jaeger.tracer.started.spans", "sampled=y"));
+        assertEquals(100, metricsFactory.getCounter("jaeger.tracer.reporter.spans", "result=ok"));
+        assertEquals(100, metricsFactory.getCounter("jaeger.tracer.traces", "sampled=y,state=started"));
     }
 
     @Test
@@ -182,7 +182,7 @@ public class RemoteReporterTest {
         reporter.report(newSpan());
 
         // Then: one or both spans should be dropped
-        long droppedCount = metricsFactory.getCounter("jaeger_tracer_reporter_spans", "result=dropped");
+        long droppedCount = metricsFactory.getCounter("jaeger.tracer.reporter.spans", "result=dropped");
         assertThat(droppedCount, anyOf(equalTo(1L), equalTo(2L)));
     }
 
@@ -272,12 +272,12 @@ public class RemoteReporterTest {
             reporter.report(newSpan());
         }
 
-        assertEquals(0, metricsFactory.getGauge("jaeger_tracer_reporter_queue_length", ""));
+        assertEquals(0, metricsFactory.getGauge("jaeger.tracer.reporter.queue.length", ""));
 
         RemoteReporter remoteReporter = (RemoteReporter) reporter;
         remoteReporter.flush();
 
-        assertTrue(metricsFactory.getGauge("jaeger_tracer_reporter_queue_length", "") > 0);
+        assertTrue(metricsFactory.getGauge("jaeger.tracer.reporter.queue.length", "") > 0);
     }
 
     @Test
@@ -420,9 +420,9 @@ public class RemoteReporterTest {
         }
 
         latch.await(1, TimeUnit.SECONDS);
-        assertEquals(flushSize, metricsFactory.getCounter("jaeger_tracer_reporter_spans", "result=ok"));
-        assertEquals(0, metricsFactory.getCounter("jaeger_tracer_reporter_spans", "result=err"));
-        assertEquals(0, metricsFactory.getCounter("jaeger_tracer_reporter_spans", "result=dropped"));
+        assertEquals(flushSize, metricsFactory.getCounter("jaeger.tracer.reporter.spans", "result=ok"));
+        assertEquals(0, metricsFactory.getCounter("jaeger.tracer.reporter.spans", "result=err"));
+        assertEquals(0, metricsFactory.getCounter("jaeger.tracer.reporter.spans", "result=dropped"));
     }
 
     @Test
@@ -447,7 +447,7 @@ public class RemoteReporterTest {
         reporter.report(newSpan());
         reporter.close();
 
-        assertEquals(reporterFailures, metricsFactory.getCounter("jaeger_tracer_reporter_spans", "result=err"));
+        assertEquals(reporterFailures, metricsFactory.getCounter("jaeger.tracer.reporter.spans", "result=err"));
     }
 
     private JaegerSpan newSpan() {

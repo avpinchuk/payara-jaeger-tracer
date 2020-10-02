@@ -14,8 +14,11 @@
 
 package io.github.avpinchuk.jaeger.payara.opentracing;
 
+import fish.payara.microprofile.metrics.MetricsService;
+import fish.payara.microprofile.metrics.exception.NoSuchRegistryException;
 import fish.payara.opentracing.OpenTracingService;
 import io.github.avpinchuk.jaeger.config.Configuration;
+import io.github.avpinchuk.jaeger.metrics.microprofile.MicroprofileMetricsFactory;
 import io.opentracing.ScopeManager;
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
@@ -23,6 +26,7 @@ import io.opentracing.Tracer;
 import io.opentracing.propagation.Format;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.glassfish.api.invocation.InvocationManager;
 import org.glassfish.internal.api.Globals;
 
@@ -45,15 +49,28 @@ public class PayaraJaegerTracer implements Tracer {
 
     private synchronized void registerTracer() {
         if (tracerDelegate == null) {
-            /* Try config sources */
-            serviceName =
-                    mpConfig.getOptionalValue(Configuration.JAEGER_SERVICE_NAME, String.class)
+            String applicationName = getApplicationName();
+
+            // Use jaeger-service property as tracer name if exists,
+            // application name otherwise
+            serviceName = mpConfig.getOptionalValue(Configuration.JAEGER_SERVICE_NAME, String.class)
                             .orElseGet(() -> {
                                 logger.warning("The 'service-name' property not defined. Will use default property name");
-                                return Globals.get(OpenTracingService.class)
-                                              .getApplicationName(Globals.get(InvocationManager.class));
+                                return applicationName;
                             });
+
+            MetricRegistry metricRegistry = getMetricRegistry(applicationName);
+
             Configuration jaegerConfig = Configuration.fromEnv(serviceName);
+
+            if (metricRegistry != null) {
+                jaegerConfig.withMetricsFactory(new MicroprofileMetricsFactory(metricRegistry));
+                logger.info("Metrics will be collected: found '"
+                            + jaegerConfig.getMetricsFactory().getClass() + "' metrics factory");
+            } else {
+                logger.warning("Metrics will not be collected: metrics factory not found");
+            }
+
             tracerDelegate = jaegerConfig.getTracer();
         }
     }
@@ -86,6 +103,26 @@ public class PayaraJaegerTracer implements Tracer {
     @Override
     public String toString() {
         return getClass().getName() + "{serviceName=" + serviceName + "}";
+    }
+
+    private String getApplicationName() {
+        InvocationManager invocationManager =
+                Globals.getDefaultBaseServiceLocator().getService(InvocationManager.class);
+
+        OpenTracingService openTracingService =
+                Globals.getDefaultBaseServiceLocator().getService(OpenTracingService.class);
+
+        return openTracingService.getApplicationName(invocationManager);
+    }
+
+    private MetricRegistry getMetricRegistry(String name) {
+        MetricsService metricsService =
+                Globals.getDefaultBaseServiceLocator().getService(MetricsService.class);
+        try {
+            return metricsService.getRegistry(name);
+        } catch (NoSuchRegistryException e) {
+            return null;
+        }
     }
 
 }

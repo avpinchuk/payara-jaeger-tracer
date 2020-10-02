@@ -34,13 +34,13 @@ public class MetricsTest {
     @Test
     public void testCounterWithoutExplicitTags() {
         metrics.tracesJoinedSampled.inc(1);
-        assertEquals(1, metricsFactory.getCounter("jaeger_tracer_traces", "sampled=y,state=joined"));
+        assertEquals(1, metricsFactory.getCounter("jaeger.tracer.traces", "sampled=y,state=joined"));
     }
 
     @Test
     public void testGaugeWithoutExplicitTags() {
         metrics.reporterQueueLength.update(1);
-        assertEquals(1, metricsFactory.getGauge("jaeger_tracer_reporter_queue_length", ""));
+        assertEquals(1, metricsFactory.getGauge("jaeger.tracer.reporter.queue.length", ""));
     }
 
     @Test
@@ -48,7 +48,7 @@ public class MetricsTest {
         Map<String, String> tags = new HashMap<>();
         tags.put("foo", "bar");
         assertEquals("thecounter.foo=bar", Metrics.addTagsToMetricName("thecounter", tags));
-        assertEquals("jaeger_tracer_thecounter.foo=bar", Metrics.addTagsToMetricName("jaeger_tracer_thecounter", tags));
+        assertEquals("jaeger.tracer.thecounter.foo=bar", Metrics.addTagsToMetricName("jaeger.tracer.thecounter", tags));
     }
 
     @Test
