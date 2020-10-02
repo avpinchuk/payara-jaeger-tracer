@@ -29,12 +29,12 @@ import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.glassfish.api.invocation.InvocationManager;
 import org.glassfish.internal.api.Globals;
-
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PayaraJaegerTracer implements Tracer {
 
-    private static final Logger logger = Logger.getLogger(PayaraJaegerTracer.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(PayaraJaegerTracer.class);
 
     private final Config mpConfig;
 
@@ -55,7 +55,7 @@ public class PayaraJaegerTracer implements Tracer {
             // application name otherwise
             serviceName = mpConfig.getOptionalValue(Configuration.JAEGER_SERVICE_NAME, String.class)
                             .orElseGet(() -> {
-                                logger.warning("The 'service-name' property not defined. Will use default property name");
+                                logger.warn("The 'service-name' property not defined. Will use default property name");
                                 return applicationName;
                             });
 
@@ -65,10 +65,9 @@ public class PayaraJaegerTracer implements Tracer {
 
             if (metricRegistry != null) {
                 jaegerConfig.withMetricsFactory(new MicroprofileMetricsFactory(metricRegistry));
-                logger.info("Metrics will be collected: found '"
-                            + jaegerConfig.getMetricsFactory().getClass() + "' metrics factory");
+                logger.info("Metrics will be collected: found '{}' metrics factory", jaegerConfig.getMetricsFactory());
             } else {
-                logger.warning("Metrics will not be collected: metrics factory not found");
+                logger.warn("Metrics will not be collected: metrics factory not found");
             }
 
             tracerDelegate = jaegerConfig.getTracer();
