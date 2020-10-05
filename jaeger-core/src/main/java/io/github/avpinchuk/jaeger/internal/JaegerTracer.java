@@ -86,8 +86,6 @@ public class JaegerTracer implements Tracer, Closeable {
     private final JaegerObjectFactory objectFactory;
     @ToString.Exclude
     private final int ipv4; // human readable representation is present within the tag map
-    @ToString.Exclude
-    private Thread shutdownHook;
 
     protected JaegerTracer(JaegerTracer.Builder builder) {
         this.serviceName = builder.serviceName;
@@ -131,21 +129,6 @@ public class JaegerTracer implements Tracer, Closeable {
         }
         this.ipv4 = ipv4;
         this.tags = Collections.unmodifiableMap(tags);
-
-        if (runsInGlassFish()) {
-            log.info("No shutdown hook registered: Please call close() manually on application shutdown.");
-        } else {
-            // register this tracer with a shutdown hook, to flush the spans before the VM shuts down
-            shutdownHook = new Thread(() -> {
-                shutdownHook = null;
-                JaegerTracer.this.close();
-            });
-            Runtime.getRuntime().addShutdownHook(shutdownHook);
-        }
-    }
-
-    private boolean runsInGlassFish() {
-        return System.getProperty("com.sun.aas.instanceRoot") != null;
     }
 
     public String getVersion() {
@@ -231,9 +214,6 @@ public class JaegerTracer implements Tracer, Closeable {
     public void close() {
         reporter.close();
         sampler.close();
-        if (shutdownHook != null) {
-            Runtime.getRuntime().removeShutdownHook(shutdownHook);
-        }
     }
 
     public class SpanBuilder implements Tracer.SpanBuilder {
