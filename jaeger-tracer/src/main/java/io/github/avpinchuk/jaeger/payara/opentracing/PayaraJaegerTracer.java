@@ -18,6 +18,7 @@ import fish.payara.microprofile.metrics.MetricsService;
 import fish.payara.microprofile.metrics.exception.NoSuchRegistryException;
 import fish.payara.opentracing.OpenTracingService;
 import io.github.avpinchuk.jaeger.config.Configuration;
+import io.github.avpinchuk.jaeger.internal.JaegerTracer;
 import io.github.avpinchuk.jaeger.metrics.microprofile.MicroprofileMetricsFactory;
 import io.opentracing.ScopeManager;
 import io.opentracing.Span;
@@ -27,10 +28,12 @@ import io.opentracing.propagation.Format;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.glassfish.api.event.Events;
 import org.glassfish.api.invocation.InvocationManager;
 import org.glassfish.hk2.api.ServiceHandle;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.internal.api.Globals;
+import org.glassfish.internal.deployment.Deployment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,16 +43,16 @@ public class PayaraJaegerTracer implements Tracer {
 
     private final Config mpConfig;
 
-    private volatile Tracer tracerDelegate;
+    private volatile JaegerTracer tracerDelegate;
 
     private String serviceName;
 
     public PayaraJaegerTracer() {
         this.mpConfig = ConfigProvider.getConfig();
-        registerTracer();
+        initTracer();
     }
 
-    private synchronized void registerTracer() {
+    private synchronized void initTracer() {
         if (tracerDelegate == null) {
             String applicationName = getApplicationName();
 
@@ -76,6 +79,19 @@ public class PayaraJaegerTracer implements Tracer {
             }
 
             tracerDelegate = jaegerConfig.getTracer();
+
+            // Register tracer shutdown hook
+            Events eventsService = getService(Events.class);
+            if (eventsService != null) {
+                logger.info("Register shutdown hook for the {} tracer", tracerDelegate);
+                eventsService.register(event -> {
+                    if (event.is(Deployment.APPLICATION_UNLOADED)) {
+                        tracerDelegate.close();
+                    }
+                });
+            } else {
+                logger.warn("Cannot register shutdown hook for the tracer {}", tracerDelegate);
+            }
         }
     }
 
