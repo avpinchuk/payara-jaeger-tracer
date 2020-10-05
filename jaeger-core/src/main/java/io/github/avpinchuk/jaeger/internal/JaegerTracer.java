@@ -132,7 +132,7 @@ public class JaegerTracer implements Tracer, Closeable {
         this.ipv4 = ipv4;
         this.tags = Collections.unmodifiableMap(tags);
 
-        if (builder.manualShutdown || runsInGlassFish()) {
+        if (runsInGlassFish()) {
             log.info("No shutdown hook registered: Please call close() manually on application shutdown.");
         } else {
             // register this tracer with a shutdown hook, to flush the spans before the VM shuts down
@@ -526,7 +526,6 @@ public class JaegerTracer implements Tracer, Closeable {
         private boolean expandExceptionLogs;
         private final JaegerObjectFactory objectFactory;
         private boolean useTraceId128Bit;
-        private boolean manualShutdown;
 
         public Builder(String serviceName) {
             this(serviceName, new JaegerObjectFactory());
@@ -649,11 +648,6 @@ public class JaegerTracer implements Tracer, Closeable {
 
         public Builder withBaggageRestrictionManager(BaggageRestrictionManager baggageRestrictionManager) {
             this.baggageRestrictionManager = baggageRestrictionManager;
-            return this;
-        }
-
-        public Builder withManualShutdown() {
-            this.manualShutdown = true;
             return this;
         }
 
