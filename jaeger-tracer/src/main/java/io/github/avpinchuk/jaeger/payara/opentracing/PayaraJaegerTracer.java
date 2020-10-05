@@ -28,6 +28,8 @@ import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.glassfish.api.invocation.InvocationManager;
+import org.glassfish.hk2.api.ServiceHandle;
+import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.internal.api.Globals;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,19 +57,22 @@ public class PayaraJaegerTracer implements Tracer {
             // application name otherwise
             serviceName = mpConfig.getOptionalValue(Configuration.JAEGER_SERVICE_NAME, String.class)
                             .orElseGet(() -> {
-                                logger.warn("The 'service-name' property not defined. Will use default property name");
+                                logger.warn("The 'service-name' property not defined. Try to use application name");
                                 return applicationName;
                             });
 
-            MetricRegistry metricRegistry = getMetricRegistry(applicationName);
+            if (serviceName == null) {
+                throw new IllegalStateException("Required property 'service-name' not found");
+            }
 
             Configuration jaegerConfig = Configuration.fromEnv(serviceName);
 
+            MetricRegistry metricRegistry = getMetricRegistry(applicationName);
             if (metricRegistry != null) {
                 jaegerConfig.withMetricsFactory(new MicroprofileMetricsFactory(metricRegistry));
-                logger.info("Metrics will be collected: found '{}' metrics factory", jaegerConfig.getMetricsFactory());
-            } else {
-                logger.warn("Metrics will not be collected: metrics factory not found");
+                logger.info(
+                        "Metrics will be collected for the {}: '{}' metrics factory found",
+                        applicationName, jaegerConfig.getMetricsFactory());
             }
 
             tracerDelegate = jaegerConfig.getTracer();
@@ -105,23 +110,39 @@ public class PayaraJaegerTracer implements Tracer {
     }
 
     private String getApplicationName() {
-        InvocationManager invocationManager =
-                Globals.getDefaultBaseServiceLocator().getService(InvocationManager.class);
-
-        OpenTracingService openTracingService =
-                Globals.getDefaultBaseServiceLocator().getService(OpenTracingService.class);
-
-        return openTracingService.getApplicationName(invocationManager);
+        InvocationManager invocationManager = getService(InvocationManager.class);
+        OpenTracingService openTracingService = getService(OpenTracingService.class);
+        if (openTracingService != null) {
+            return openTracingService.getApplicationName(invocationManager);
+        }
+        return null;
     }
 
     private MetricRegistry getMetricRegistry(String name) {
-        MetricsService metricsService =
-                Globals.getDefaultBaseServiceLocator().getService(MetricsService.class);
-        try {
-            return metricsService.getRegistry(name);
-        } catch (NoSuchRegistryException e) {
-            return null;
+        MetricsService metricsService = getService(MetricsService.class);
+        if (metricsService != null) {
+            try {
+                if (name != null) {
+                    return metricsService.getRegistry(name);
+                } else {
+                    logger.warn("Metrics will not be collected: application is null");
+                }
+            } catch (NoSuchRegistryException e) {
+                logger.warn("Metrics will not be collected for the {}: no metric registry found", name);
+            }
         }
+        return null;
+    }
+
+    private <T> T getService(Class<T> type) {
+        ServiceLocator serviceLocator = Globals.getDefaultBaseServiceLocator();
+        if (serviceLocator != null) {
+            ServiceHandle<T> serviceHandle = serviceLocator.getServiceHandle(type);
+            if (serviceHandle != null && serviceHandle.isActive()) {
+                return serviceHandle.getService();
+            }
+        }
+        return null;
     }
 
 }
