@@ -17,7 +17,7 @@
         <lombok.version>1.18.12</lombok.version>
         <slf4j.version>1.7.30</slf4j.version>
         <libthrift.version>0.13.0</libthrift.version>
-        <microprofile.config.version>1.4</microprofile.config.version>
+        <microprofile.config.version>1.3</microprofile.config.version>
         <microprofile.metrics.version>2.2.2</microprofile.metrics.version>
         <payara.version>5.194</payara.version>
         <junit.version>4.13</junit.version>
@@ -26,7 +26,7 @@
         <junit.dataprovider.version>1.13.1</junit.dataprovider.version>
         <awaitility.version>4.0.3</awaitility.version>
         <logback.version>1.2.3</logback.version>
-        <smallrye.config.version>1.8.6</smallrye.config.version>
+        <smallrye.config.version>1.5.1</smallrye.config.version>
         <smallrye.metrics.version>2.3.3</smallrye.metrics.version>
         <annotation.api.version>1.3.2</annotation.api.version>
         <jakarta.jsonb.version>1.0.2</jakarta.jsonb.version>
