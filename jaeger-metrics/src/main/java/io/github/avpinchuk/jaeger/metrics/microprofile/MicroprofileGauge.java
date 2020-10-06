@@ -29,7 +29,6 @@ class MicroprofileGauge implements io.github.avpinchuk.jaeger.internal.metrics.G
     MicroprofileGauge(MetricRegistry registry, String name, Tag[] tags) {
         Metadata metadata = Metadata.builder()
                     .withName(name)
-                    .withOptionalDisplayName(null)
                     .withType(MetricType.GAUGE)
                 .build();
         try {
