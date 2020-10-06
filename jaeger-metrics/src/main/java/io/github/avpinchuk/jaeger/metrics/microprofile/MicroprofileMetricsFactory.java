@@ -40,7 +40,8 @@ public class MicroprofileMetricsFactory implements MetricsFactory {
 
     @Override
     public Timer createTimer(String name, Map<String, String> tags) {
-        return new MicroprofileTimer(registry, name, convertTags(tags));
+        // Currently Timer not used therefore we use noop implementation
+        return time -> { };
     }
 
     @Override

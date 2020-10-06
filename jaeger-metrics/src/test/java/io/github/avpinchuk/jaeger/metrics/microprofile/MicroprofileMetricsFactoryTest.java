@@ -62,21 +62,13 @@ public class MicroprofileMetricsFactoryTest {
         return Arrays.asList(
                 // type, initial, amount, amount2, expected, expected2
                 new Object[] {Counter.class, 0L, 1L, 2L, 1L, 3L},
-                new Object[] {
-                        Timer.class,
-                        Duration.of(0L, ChronoUnit.MICROS),
-                        1L,
-                        2L,
-                        Duration.of(1L, ChronoUnit.MICROS),
-                        Duration.of(3L, ChronoUnit.MICROS)
-                },
                 new Object[] {Gauge.class, -1L, 1L, 2L, 1L, 2L}
         );
     }
 
     @BeforeClass
     public static void setUpClass() {
-        metricTypes = new HashSet<>(Arrays.asList(Gauge.class, Timer.class, Counter.class));
+        metricTypes = new HashSet<>(Arrays.asList(Gauge.class, Counter.class));
         counters = new HashMap<>();
         registry = new MetricsRegistryImpl();
         factory = new MicroprofileMetricsFactory(registry);

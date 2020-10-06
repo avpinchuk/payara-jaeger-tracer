@@ -19,7 +19,6 @@ import org.eclipse.microprofile.metrics.Gauge;
 import org.eclipse.microprofile.metrics.Metric;
 import org.eclipse.microprofile.metrics.MetricID;
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.eclipse.microprofile.metrics.Tag;
 
 public final class MetricUtil {
@@ -38,8 +37,6 @@ public final class MetricUtil {
         Metric metric = getMetric(registry, name, tags);
         if (metric instanceof Counter) {
             value = ((Counter) metric).getCount();
-        } else if (metric instanceof SimpleTimer) {
-            value = ((SimpleTimer) metric).getElapsedTime();
         } else if (metric instanceof Gauge) {
             value = ((Gauge) metric).getValue();
         }
