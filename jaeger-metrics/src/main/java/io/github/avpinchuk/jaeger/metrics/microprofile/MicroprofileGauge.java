@@ -54,11 +54,11 @@ class MicroprofileGauge implements io.github.avpinchuk.jaeger.internal.metrics.G
     }
 
     private static class GaugeImpl implements Gauge<Long> {
-        private volatile Long value = 0L;
+        private volatile Long value = -1L;
 
         @Override
         public Long getValue() {
-            return value != null ? value : 0L;
+            return value != null ? value : -1L;
         }
 
         void setValue(Long value) {

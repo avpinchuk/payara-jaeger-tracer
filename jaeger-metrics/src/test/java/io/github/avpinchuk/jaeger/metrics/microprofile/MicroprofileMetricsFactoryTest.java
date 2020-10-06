@@ -70,7 +70,7 @@ public class MicroprofileMetricsFactoryTest {
                         Duration.of(1L, ChronoUnit.MICROS),
                         Duration.of(3L, ChronoUnit.MICROS)
                 },
-                new Object[] {Gauge.class, 0L, 1L, 2L, 1L, 2L}
+                new Object[] {Gauge.class, -1L, 1L, 2L, 1L, 2L}
         );
     }
 
