@@ -4,6 +4,8 @@
  * Implements [Opentracing Java API 0.31.0](https://github.com/opentracing/opentracing-java/tree/release-0.31.0).
  * Supports Java 1.8 and above.
  * Supports Payara Platform 5.194 and above.
+ * Supports configuration with [Microprofile Config 1.3](https://github.com/eclipse/microprofile-config/tree/1.3).
+ * Exposes Jaeger internal metrics with [Microprofile Metrics 2.2](https://github.com/eclipse/microprofile-metrics/tree/2.2).
  
 ### Building
 
@@ -16,7 +18,7 @@ To save a bit of time, you can skip tests by appending the skipTests flag to the
 mvn clean package -DskipTests
 ```
 
-Artifact resides under `jaeger-tracer`/`target`.
+Artifacts resides under `jaeger-tracer`/`target`.
    
 ### Configuration
 
@@ -72,6 +74,36 @@ probabilistic | Probabilistic sampler makes a random sampling decision with the 
 ratelimiting | Rate Limiting sampler uses a leaky bucket rate limiter to ensure that traces are sampled with a certain constant rate. For example, when `sampler-param=2.0` it will sample requests with the rate of 2 traces per second
 remote | Remote sampler consults Jaeger agent for the appropriate sampling strategy to use in the current service. This allows controlling the sampling strategies in the services from a [central configuration](https://www.jaegertracing.io/docs/1.19/sampling/#collector-sampling-configuration) in Jaeger backend, or even dynamically (see [Adaptive Sampling](https://www.jaegertracing.io/docs/1.19/sampling/#adaptive-sampler))
 
+### Microprofile Metrics Integration
+
+Metrics are exposed under application scope.
+
+The following metrics is available:
+
+Metric | Metric Type | Description
+--- | --- | ---
+jaeger.tracer.traces;sampled=y;state=started | counter | Number of traces started by this tracer as sampled
+jaeger.tracer.traces;sampled=n;state=started | counter | Number of traces started by this tracer as not sampled
+jaeger.tracer.traces;sampled=y;state=joined | counter | Number of externally started sampled traces this tracer joined
+jaeger.tracer.traces;sampled=n;state=joined | counter | Number of externally started unsampled traces this tracer joined
+jaeger.tracer.started.spans;sampled=y | counter | Number of sampled spans started by this tracer
+jaeger.tracer.started.spans;sampled=n | counter | Number of unsampled spans started by this tracer
+jaeger.tracer.finished.spans | counter | Number of spans finished by this tracer
+jaeger.tracer.span.context.decoding.errors | counter | Number of errors decoding tracing context
+jaeger.tracer.reporter.spans;result=ok | counter | Number of successfully reported spans
+jaeger.tracer.reporter.spans;result=err | counter | Number of spans not reported due to a `Sender` failure
+jaeger.tracer.reporter.spans;result=dropped | counter | Number of spans dropped due to internal queue overflow
+jaeger.tracer.reporter.queue.length | gauge | Current number of spans in the reporter queue
+jaeger.tracer.sampler.queries;result=ok | counter | Number of times the `Sampler` succeeded to retrieve sampling strategy
+jaeger.tracer.sampler.queries;result=err | counter | Number of times the `Sampler` failed to retrieve sampling strategy
+jaeger.tracer.sampler.updates;result=ok | counter | Number of times the `Sampler` succeeded to retrieve and update sampling strategy
+jaeger.tracer.sampler.updates;result=err | counter | Number of times the `Sampler` failed to update sampling strategy
+jaeger.tracer.baggage.updates;result=ok | counter | Number of times baggage was successfully written or updated on spans
+jaeger.tracer.baggage.updates;result=err | counter | Number of times baggage failed to write or update on spans
+jaeger.tracer.baggage.truncations | counter | Number of times baggage was truncated as per baggage restrictions
+jaeger.tracer.baggage.restrictions.updates;result=ok | counter | Number of times baggage restrictions were successfully updated
+jaeger.tracer.baggage.restrictions.updates;result=err | counter | Number of times baggage restrictions failed to update
+
 ### Using with Payara Platform
 
 ##### Install library
@@ -81,13 +113,13 @@ This must be added as a library to the server itself, not included with a deploy
 *Add it as a library with the asadmin command*
 
 ```sh
-asadmin add-library jaeger-tracer-lib.jar
+asadmin add-library jaeger-tracer-all.jar
 ```
 
 *Add it to a new Payara Micro Instance*
 
 ```sh
-java -jar payare-micro.jar --addLibs jaeger-tracer-lib.jar
+java -jar payare-micro.jar --addLibs jaeger-tracer-all.jar
 ```
 
 ##### Enable request tracing feature
@@ -133,6 +165,12 @@ public class RequestTracingBean {
     
 }
 ```
+
+### Implementation Notes
+
+During building of the project generated two artifacts: shaded and unshaded versions of library.
+In shaded version of library all externals packages which not belong to the project are relocated to internal
+namespace, thus avoiding conflicts with packages included in other modules and applications.
 
 ### License
 
