@@ -1,2 +1,7 @@
 /.idea/
 **/dependency-reduced-pom.xml
+/jaeger-core/jaeger-core.iml
+/jaeger-metrics/jaeger-metrics.iml
+/payara-jaeger-tracer.iml
+/jaeger-tracer/jaeger-tracer.iml
+/jaeger-thrift/jaeger-thrift.iml
