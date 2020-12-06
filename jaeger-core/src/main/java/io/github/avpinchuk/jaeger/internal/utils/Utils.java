@@ -23,6 +23,11 @@ import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Utils {
+
+    private Utils() {
+        throw new AssertionError();
+    }
+
     public static String normalizeBaggageKey(String key) {
         return key.replaceAll("_", "-").toLowerCase(Locale.ROOT);
     }
@@ -62,5 +67,11 @@ public class Utils {
         return Objects.equals(a, b);
     }
 
-    private Utils() {}
+    public static String to16HexString(long id) {
+        final String hex = Long.toHexString(id);
+        if (hex.length() == 16) {
+            return hex;
+        }
+        return "0000000000000000".substring(hex.length()) + hex;
+    }
 }

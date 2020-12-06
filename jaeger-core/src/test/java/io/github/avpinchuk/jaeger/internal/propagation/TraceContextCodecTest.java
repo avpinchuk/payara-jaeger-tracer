@@ -121,7 +121,7 @@ public class TraceContextCodecTest {
         assertEquals(EXAMPLE_TRACE_PARENT, traceParent);
         textMap = new TextMapExtractAdapter(carrier);
         JaegerSpanContext extractedContext = traceContextCodec.extract(textMap);
-        assertEquals("1:2:0:0", extractedContext.toString());
+        assertEquals("0000000000000001:0000000000000002:0:0", extractedContext.toString());
     }
 
     @Test
@@ -131,7 +131,7 @@ public class TraceContextCodecTest {
         extractCarrier.put("Tracestate", "whatever");
         TextMap textMap = new TextMapExtractAdapter(extractCarrier);
         JaegerSpanContext spanContext = traceContextCodec.extract(textMap);
-        assertEquals("1:2:0:0", spanContext.toString());
+        assertEquals("0000000000000001:0000000000000002:0:0", spanContext.toString());
         assertEquals("whatever", spanContext.getTraceState());
     }
 
@@ -211,7 +211,7 @@ public class TraceContextCodecTest {
         TextMap textMap = new TextMapExtractAdapter(extractCarrier);
         JaegerSpanContext spanContext = traceContextCodec.extract(textMap);
         JaegerTracer tracer = new JaegerTracer.Builder("service").withReporter(new InMemoryReporter()).build();
-        assertEquals("1", spanContext.getTraceId());
+        assertEquals("0000000000000001", spanContext.getTraceId());
         JaegerSpan child = tracer.buildSpan("span").asChildOf(spanContext).start();
         assertFalse(child.context().isDebug());
         child.finish();

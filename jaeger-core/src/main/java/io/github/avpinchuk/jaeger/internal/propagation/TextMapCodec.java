@@ -20,6 +20,7 @@ import io.github.avpinchuk.jaeger.internal.JaegerObjectFactory;
 import io.github.avpinchuk.jaeger.internal.JaegerSpanContext;
 import io.github.avpinchuk.jaeger.internal.exceptions.EmptyTracerStateStringException;
 import io.github.avpinchuk.jaeger.internal.exceptions.MalformedTracerStateStringException;
+import io.github.avpinchuk.jaeger.internal.utils.Utils;
 import io.github.avpinchuk.jaeger.spi.Codec;
 import io.github.avpinchuk.jaeger.internal.exceptions.TraceIdOutOfBoundException;
 import io.opentracing.propagation.TextMap;
@@ -119,8 +120,9 @@ public class TextMapCodec implements Codec<TextMap> {
         int intFlag = context.getFlags() & 0xFF;
         return new StringBuilder()
                 .append(context.getTraceId()).append(":")
-                .append(Long.toHexString(context.getSpanId())).append(":")
-                .append(Long.toHexString(context.getParentId())).append(":")
+                .append(Utils.to16HexString(context.getSpanId())).append(":")
+                // parent = 0 is special, no need to encode as full 16 characters, and more readable this way
+                .append(context.getParentId() == 0L ? "0" : Utils.to16HexString(context.getParentId())).append(":")
                 .append(Integer.toHexString(intFlag))
                 .toString();
     }
